@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join — WritersClub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="spine-mark"></span>
+    <span class="brand">WritersClub</span>
+  </header>
+
+  <div class="step-track" id="stepTrack"></div>
+
+  <!-- Step 1: Wattpad verification -->
+  <section class="step" data-step="1">
+    <h2>Verify your Wattpad</h2>
+    <p>Use the same account you write on. You'll need at least one chapter already published.</p>
+    <div class="field">
+      <label for="wpEmail">Email you use to log in to Wattpad</label>
+      <input type="email" id="wpEmail" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label for="wpProfile">Link to your Wattpad profile</label>
+      <input type="url" id="wpProfile" placeholder="https://www.wattpad.com/user/yourname">
+    </div>
+    <div class="field">
+      <label for="wpChapters">Chapters you've published so far</label>
+      <input type="number" id="wpChapters" min="0" placeholder="e.g. 3">
+    </div>
+    <div class="error-msg" id="err1"></div>
+    <button class="btn btn-primary" onclick="WCUI.next(1)">Continue</button>
+  </section>
+
+  <!-- Step 2: writing genre + book title -->
+  <section class="step" data-step="2" style="display:none;">
+    <h2>Your book</h2>
+    <p>This is what readers will see when they're matched to support you.</p>
+    <div class="field">
+      <label for="bookTitle">Book title</label>
+      <input type="text" id="bookTitle" placeholder="e.g. The Quiet Ledger">
+    </div>
+    <div class="field">
+      <label>What genre is it?</label>
+      <div class="chip-grid" id="writingGenreGrid"></div>
+    </div>
+    <div class="error-msg" id="err2"></div>
+    <button class="btn btn-primary" onclick="WCUI.next(2)">Continue</button>
+  </section>
+
+  <!-- Step 3: reading interests -->
+  <section class="step" data-step="3" style="display:none;">
+    <h2>What you love reading</h2>
+    <p>Pick every genre you'd genuinely enjoy — this decides whose books you get matched to, and what we recommend you.</p>
+    <div class="field">
+      <div class="chip-grid" id="readingGenreGrid"></div>
+    </div>
+    <div class="error-msg" id="err3"></div>
+    <button class="btn btn-primary" onclick="WCUI.next(3)">Continue</button>
+  </section>
+
+  <!-- Step 4: time on wattpad -->
+  <section class="step" data-step="4" style="display:none;">
+    <h2>Almost there</h2>
+    <div class="field">
+      <label for="displayName">Name or pen name to show other writers</label>
+      <input type="text" id="displayName" placeholder="e.g. Alaina R.">
+    </div>
+    <div class="field">
+      <label for="timeOnWattpad">How long have you been writing on Wattpad?</label>
+      <select id="timeOnWattpad">
+        <option value="">Select one</option>
+        <option>Less than a month</option>
+        <option>1–3 months</option>
+        <option>3–6 months</option>
+        <option>6–12 months</option>
+        <option>Over a year</option>
+      </select>
+    </div>
+    <div class="error-msg" id="err4"></div>
+    <button class="btn btn-primary" onclick="WCUI.next(4)">Continue</button>
+  </section>
+
+  <!-- Step 5: match mode -->
+  <section class="step" data-step="5" style="display:none;">
+    <h2>How do you want to be matched?</h2>
+    <div class="field">
+      <div class="choice" data-mode="mutual" onclick="WCUI.pickMode('mutual')">
+        <div class="title">Mutual pairing</div>
+        <div class="desc">You and one other writer support each other directly — a guaranteed trade.</div>
+      </div>
+    </div>
+    <div class="field">
+      <div class="choice" data-mode="open" onclick="WCUI.pickMode('open')">
+        <div class="title">Open matching</div>
+        <div class="desc">You're matched to whoever's reading taste fits your book best — not necessarily a two-way trade.</div>
+      </div>
+    </div>
+    <div class="error-msg" id="err5"></div>
+    <button class="btn btn-primary" onclick="WCUI.finish()">Join WritersClub</button>
+  </section>
+
+  <footer class="note">This is an early prototype — your info is stored on this phone only for now.</footer>
+</div>
+
+<script src="app.js"></script>
+<script>
+const WCUI = {
+  data: { readingGenres: [], writingGenre: null, matchMode: null },
+
+  renderDots(step){
+    const track = document.getElementById('stepTrack');
+    track.innerHTML = '';
+    for (let i=1;i<=5;i++){
+      const d = document.createElement('div');
+      d.className = 'dot' + (i < step ? ' done' : (i===step ? ' done' : ''));
+      track.appendChild(d);
+    }
+  },
+
+  showStep(n){
+    document.querySelectorAll('.step').forEach(s => s.style.display = 'none');
+    document.querySelector(`.step[data-step="${n}"]`).style.display = 'block';
+    this.renderDots(n);
+    window.scrollTo(0,0);
+  },
+
+  buildGenreGrid(elId, key){
+    const grid = document.getElementById(elId);
+    WC.GENRES.forEach(g => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.textContent = g;
+      chip.onclick = () => {
+        if (key === 'writingGenre'){
+          document.querySelectorAll(`#${elId} .chip`).forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+          this.data.writingGenre = g;
+        } else {
+          chip.classList.toggle('selected');
+          const idx = this.data.readingGenres.indexOf(g);
+          if (chip.classList.contains('selected') && idx === -1) this.data.readingGenres.push(g);
+          if (!chip.classList.contains('selected') && idx > -1) this.data.readingGenres.splice(idx,1);
+        }
+      };
+      grid.appendChild(chip);
+    });
+  },
+
+  err(n, msg){
+    const el = document.getElementById('err'+n);
+    el.textContent = msg;
+    el.classList.toggle('show', !!msg);
+  },
+
+  next(step){
+    this.err(step, '');
+    if (step === 1){
+      const email = document.getElementById('wpEmail').value.trim();
+      const profile = document.getElementById('wpProfile').value.trim();
+      const chapters = parseInt(document.getElementById('wpChapters').value || '0', 10);
+      if (!email || !profile){ this.err(1, 'Fill in your email and profile link.'); return; }
+      const result = WC.verifyWattpad(profile, chapters);
+      if (result.status === 'rejected'){ this.err(1, result.reason); return; }
+      this.data.wpEmail = email; this.data.wpProfile = profile; this.data.wpChapters = chapters;
+    }
+    if (step === 2){
+      const title = document.getElementById('bookTitle').value.trim();
+      if (!title){ this.err(2, 'Add your book title.'); return; }
+      if (!this.data.writingGenre){ this.err(2, 'Pick the genre your book fits.'); return; }
+      this.data.bookTitle = title;
+    }
+    if (step === 3){
+      if (this.data.readingGenres.length === 0){ this.err(3, 'Pick at least one genre.'); return; }
+    }
+    if (step === 4){
+      const name = document.getElementById('displayName').value.trim();
+      const time = document.getElementById('timeOnWattpad').value;
+      if (!name || !time){ this.err(4, 'Fill in both fields.'); return; }
+      this.data.displayName = name; this.data.timeOnWattpad = time;
+    }
+    this.showStep(step + 1);
+  },
+
+  pickMode(mode){
+    this.data.matchMode = mode;
+    document.querySelectorAll('.choice').forEach(c => c.classList.toggle('selected', c.dataset.mode === mode));
+  },
+
+  finish(){
+    if (!this.data.matchMode){ this.err(5, 'Choose a matching style.'); return; }
+    WC.createOrUpdateProfile({
+      name: this.data.displayName,
+      bookTitle: this.data.bookTitle,
+      writingGenre: this.data.writingGenre,
+      readingGenres: this.data.readingGenres,
+      wattpadProfile: this.data.wpProfile,
+      timeOnWattpad: this.data.timeOnWattpad,
+      matchMode: this.data.matchMode
+    });
+    window.location.href = 'dashboard.html';
+  }
+};
+
+WCUI.buildGenreGrid('writingGenreGrid', 'writingGenre');
+WCUI.buildGenreGrid('readingGenreGrid', 'readingGenres');
+WCUI.showStep(1);
+</script>
+</body>
+</html>
