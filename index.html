@@ -1,62 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WritersClub</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WritersClub — Find the Reader Your Book Needs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<div class="wrap">
-  <header class="top">
-    <span class="spine-mark"></span>
-    <span class="brand">WritersClub</span>
-  </header>
+<body class="theme-soft-purple">
+  <div class="page-container">
+    
+    <header class="navbar">
+      <div class="nav-brand">
+        <svg class="brand-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M12 19L19 12L22 15L15 22L12 19Z" fill="currentColor"/>
+          <path d="M18 13L11 6L4 13L11 20L18 13Z" fill="currentColor" fill-opacity="0.4"/>
+        </svg>
+        <span class="brand-name">WritersClub</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#how-it-works">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#about">About</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="btn btn-text" id="loginBtn">Log in</button>
+        <a href="signup.html" class="btn btn-nav-primary">Join Now</a>
+      </div>
+    </header>
 
-  <div class="hero">
-    <h1>Find the reader your book actually needs.</h1>
-    <p>A place for new Wattpad writers to trade genuine support — matched by
-    genre, tracked fairly, no separate fan base required.</p>
+    <section class="hero-section">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          Find the reader <br>
+          <span class="highlight-purple">your book</span> <br>
+          actually needs.
+        </h1>
+        <p class="hero-subtitle">
+          A home for new Wattpad writers to connect, support, and grow together — 
+          matched by genre, tracked fairly, and 100% writers-only.
+        </p>
+
+        <div class="hero-cta-group">
+          <a href="signup.html" class="btn btn-primary btn-lg">
+            <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <polyline points="17 11 19 13 23 9"></polyline>
+            </svg>
+            Join with your Wattpad account
+          </a>
+          <button class="btn btn-secondary btn-lg" id="returningBtn">I already have an account</button>
+        </div>
+
+        <div class="hero-trust-badges">
+          <span class="badge"><i class="icon-check"></i> 100% Writers Only</span>
+          <span class="badge"><i class="icon-check"></i> Genre-Based Match</span>
+          <span class="badge"><i class="icon-check"></i> Fair System</span>
+        </div>
+      </div>
+
+      <div class="hero-illustration-container">
+        <div class="illustration-wrapper">
+          <img src="hero-character-illustration.png" alt="Writer reading on laptop with cozy books background" class="hero-img">
+          
+          <div class="floating-tag tag-romance">
+            <span class="tag-icon">💖</span> Romance
+          </div>
+          <div class="floating-tag tag-fantasy">
+            <span class="tag-icon">⭐</span> Fantasy
+          </div>
+          <div class="floating-tag tag-mystery">
+            <span class="tag-icon">🔍</span> Mystery
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="how-it-works-section" id="how-it-works">
+      <h2 class="section-title">How it works</h2>
+      <div class="steps-grid">
+        
+        <div class="step-card">
+          <div class="step-icon-wrapper icon-bg-pink">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+          </div>
+          <h3 class="step-title">1. Tell us your book</h3>
+          <p class="step-desc">Add your book details, genre, and the genres you love reading yourself.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-icon-wrapper icon-bg-purple">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <h3 class="step-title">2. Get matched</h3>
+          <p class="step-desc">We match you with writers who enjoy your genre for mutual support.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-icon-wrapper icon-bg-green">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h3 class="step-title">3. Support & grow</h3>
+          <p class="step-desc">Complete fair tasks, confirm mutually, and grow together seamlessly.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="banner-card">
+      <div class="banner-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+      </div>
+      <div class="banner-text">
+        <h3>Writers only. Genuine support.</h3>
+        <p>We verify Wattpad accounts so this space stays safe, supportive, and built just for writers.</p>
+      </div>
+    </section>
+
+    <footer class="main-footer">
+      <p class="note">This is an early, single-device prototype — accounts are stored on this phone only for now.</p>
+      <p class="copyright">&copy; 2026 WritersClub. All rights reserved.</p>
+    </footer>
+
   </div>
 
-  <div class="field">
-    <p style="margin-bottom:18px;">Every member signs up with the Wattpad account they already write on, so the club stays writers-only.</p>
-  </div>
+  <script src="app.js"></script>
+  <script>
+    WC.ensureSeedUsers();
+    
+    const handleAuthCheck = () => {
+      const u = WC.getCurrentUser();
+      if (u && u.bookTitle) {
+        window.location.href = 'dashboard.html';
+      } else {
+        alert("No account found on this phone yet — let's get you signed up.");
+        window.location.href = 'signup.html';
+      }
+    };
 
-  <a class="btn btn-primary" href="signup.html" style="margin-bottom:12px;">Join with your Wattpad account</a>
-  <button class="btn btn-ghost" id="returningBtn">I already have an account</button>
-
-  <div class="section-label">How it works</div>
-  <div class="card">
-    <div class="book-title">1. Tell us your book</div>
-    <div class="book-meta">Its genre, and what you love reading yourself.</div>
-  </div>
-  <div class="card">
-    <div class="book-title">2. Get matched</div>
-    <div class="book-meta">By genre fit — mutual pairing, or open matching if you're confident your book stands on its own.</div>
-  </div>
-  <div class="card">
-    <div class="book-title">3. Support each other, on record</div>
-    <div class="book-meta">Both sides confirm the task is done — no one has to take it on faith.</div>
-  </div>
-
-  <footer class="note">This is an early, single-device prototype — accounts are stored on this phone only for now.</footer>
-</div>
-
-<script src="app.js"></script>
-<script>
-  WC.ensureSeedUsers();
-  document.getElementById('returningBtn').addEventListener('click', () => {
-    const u = WC.getCurrentUser();
-    if (u && u.bookTitle) {
-      window.location.href = 'dashboard.html';
-    } else {
-      alert("No account found on this phone yet — let's get you signed up.");
-      window.location.href = 'signup.html';
-    }
-  });
-</script>
+    document.getElementById('returningBtn').addEventListener('click', handleAuthCheck);
+    document.getElementById('loginBtn')?.addEventListener('click', handleAuthCheck);
+  </script>
 </body>
-</html>
+            </html>
+  
