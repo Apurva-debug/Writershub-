@@ -16,30 +16,96 @@
   </header>
 
   <div class="hero">
-    <h1>Find the reader your book has been waiting for 💜</h1>
+    <h1>Find the reader your book has been waiting for</h1>
     <p>A cozy corner for new Wattpad writers to trade genuine support — matched
     by genre, tracked fairly, no separate fan base required.</p>
+
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="160" cy="300" rx="112" ry="14" fill="var(--shadow-soft)"/>
+
+        <g>
+          <rect x="34" y="252" width="72" height="18" rx="4" fill="var(--accent-2)"/>
+          <rect x="42" y="234" width="62" height="18" rx="4" fill="var(--accent-4)"/>
+          <rect x="36" y="216" width="66" height="18" rx="4" fill="var(--accent-1)"/>
+        </g>
+        <g>
+          <rect x="214" y="252" width="72" height="18" rx="4" fill="var(--accent-2)"/>
+          <rect x="216" y="234" width="62" height="18" rx="4" fill="var(--accent-1)"/>
+          <rect x="218" y="216" width="66" height="18" rx="4" fill="var(--accent-4)"/>
+        </g>
+
+        <path d="M96 268 Q90 226 160 224 Q230 226 224 268 Q160 288 96 268 Z" fill="var(--pants)"/>
+        <path d="M108 250 Q160 268 212 250" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round"/>
+
+        <path d="M104 172 Q108 130 160 128 Q212 130 216 172 L222 224 Q160 244 98 224 Z" fill="var(--accent-1)"/>
+        <path d="M140 132 L160 168 L180 132" fill="var(--card-bg)"/>
+        <path d="M138 130 Q120 140 112 176 M182 130 Q200 140 208 176" fill="none" stroke="var(--accent-1)" stroke-width="10" stroke-linecap="round"/>
+
+        <path d="M118 180 Q104 198 118 214" fill="none" stroke="var(--accent-1)" stroke-width="16" stroke-linecap="round"/>
+        <path d="M202 180 Q216 198 202 214" fill="none" stroke="var(--accent-1)" stroke-width="16" stroke-linecap="round"/>
+        <circle cx="120" cy="216" r="9" fill="var(--skin)"/>
+        <circle cx="200" cy="216" r="9" fill="var(--skin)"/>
+
+        <path d="M116 206 Q160 194 204 206 L204 226 Q160 214 116 226 Z" fill="var(--card-bg)"/>
+        <path d="M160 200 L160 220" stroke="#e4ddf7" stroke-width="2"/>
+
+        <circle cx="160" cy="96" r="36" fill="var(--skin)"/>
+        <circle cx="146" cy="100" r="2.6" fill="var(--hair)"/>
+        <circle cx="174" cy="100" r="2.6" fill="var(--hair)"/>
+        <path d="M150 112 Q160 118 170 112" fill="none" stroke="var(--hair)" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="136" cy="106" r="6" fill="var(--accent-2)" opacity="0.55"/>
+        <circle cx="184" cy="106" r="6" fill="var(--accent-2)" opacity="0.55"/>
+
+        <path d="M122 92 Q116 46 160 44 Q204 46 198 92 Q200 70 160 66 Q120 70 122 92 Z" fill="var(--hair)"/>
+        <path d="M196 84 Q222 92 214 130 Q206 118 198 108 Z" fill="var(--hair)"/>
+        <circle cx="199" cy="92" r="5" fill="var(--accent-4)"/>
+
+        <g class="floaty">
+          <rect x="222" y="52" width="70" height="42" rx="14" fill="var(--card-bg)"/>
+          <path d="M234 94 L228 106 L246 94 Z" fill="var(--card-bg)"/>
+          <rect x="234" y="64" width="46" height="6" rx="3" fill="var(--accent-3)"/>
+          <rect x="234" y="76" width="30" height="6" rx="3" fill="var(--accent-3)"/>
+        </g>
+
+        <g class="floaty-2">
+          <circle cx="44" cy="150" r="22" fill="var(--card-bg)"/>
+          <path d="M44 160 Q30 148 36 138 Q40 132 44 140 Q48 132 52 138 Q58 148 44 160 Z" fill="#ef8ba0"/>
+        </g>
+
+        <g class="floaty">
+          <circle cx="278" cy="176" r="20" fill="var(--accent-1)"/>
+          <path d="M269 168 h18 v16 h-18 Z" fill="none" stroke="#fff" stroke-width="2.2"/>
+          <path d="M269 174 h18" stroke="#fff" stroke-width="2.2"/>
+        </g>
+      </svg>
+    </div>
   </div>
 
   <div class="field">
-    <p style="margin-bottom:18px;">Every member signs up with the Wattpad account they already write on, so the club stays writers-only.</p>
+    <p>Every member signs up with the Wattpad account they already write on, so the club stays writers-only.</p>
   </div>
 
-  <a class="btn btn-primary" href="signup.html" style="margin-bottom:12px;">Join with your Wattpad account</a>
+  <a class="btn btn-primary" href="signup.html">Join with your Wattpad account</a>
   <button class="btn btn-ghost" id="returningBtn">I already have an account</button>
 
   <div class="section-label">How it works</div>
-  <div class="card">
-    <div class="book-title">1. Tell us your book</div>
-    <div class="book-meta">Its genre, and what you love reading yourself.</div>
-  </div>
-  <div class="card">
-    <div class="book-title">2. Get matched</div>
-    <div class="book-meta">By genre fit — mutual pairing, or open matching if you're confident your book stands on its own.</div>
-  </div>
-  <div class="card">
-    <div class="book-title">3. Support each other, on record</div>
-    <div class="book-meta">Both sides confirm the task is done — no one has to take it on faith.</div>
+  <div class="steps">
+    <div class="card step-card">
+      <div class="step-icon icon-1">1</div>
+      <div class="book-title">Tell us your book</div>
+      <div class="book-meta">Its genre, and what you love reading yourself.</div>
+    </div>
+    <div class="card step-card">
+      <div class="step-icon icon-2">2</div>
+      <div class="book-title">Get matched</div>
+      <div class="book-meta">By genre fit — mutual pairing, or open matching if you're confident your book stands on its own.</div>
+    </div>
+    <div class="card step-card">
+      <div class="step-icon icon-3">3</div>
+      <div class="book-title">Support each other, on record</div>
+      <div class="book-meta">Both sides confirm the task is done — no one has to take it on faith.</div>
+    </div>
   </div>
 
   <footer class="note">This is an early, single-device prototype — accounts are stored on this phone only for now.</footer>
@@ -47,16 +113,19 @@
 
 <script src="app.js"></script>
 <script>
-  WC.ensureSeedUsers();
-  document.getElementById('returningBtn').addEventListener('click', () => {
-    const u = WC.getCurrentUser();
-    if (u && u.bookTitle) {
-      window.location.href = 'dashboard.html';
-    } else {
-      alert("No account found on this phone yet — let's get you signed up.");
-      window.location.href = 'signup.html';
-    }
-  });
+  if (window.WC) {
+    WC.ensureSeedUsers();
+    document.getElementById('returningBtn').addEventListener('click', () => {
+      const u = WC.getCurrentUser();
+      if (u && u.bookTitle) {
+        window.location.href = 'dashboard.html';
+      } else {
+        alert("No account found on this phone yet — let's get you signed up.");
+        window.location.href = 'signup.html';
+      }
+    });
+  }
 </script>
 </body>
-</html>
+            </html>
+            
