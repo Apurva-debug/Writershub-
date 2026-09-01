@@ -54,7 +54,7 @@
       <div class="chip-grid" id="writingGenreGrid"></div>
       <div class="inline-add">
         <input type="text" id="customWritingGenre" placeholder="Not listed? Type your own genre">
-        <button type="button" onclick="WCUI.addCustom('writingGenreGrid','writingGenre','customWritingGenre')">Add</button>
+        <button type="button" onclick="WCUI.addCustom('writingGenreGrid','writingGenres','customWritingGenre')">Add</button>
       </div>
     </div>
     <div class="error-msg" id="err2"></div>
@@ -251,10 +251,10 @@ const WCUI = {
   }
 };
 
-WCUI.buildGenreGrid('writingGenreGrid', 'writingGenre');
+WCUI.buildGenreGrid('writingGenreGrid', 'writingGenres');
 WCUI.buildGenreGrid('readingGenreGrid', 'readingGenres');
 WCUI.showStep(1);
 </script>
 </body>
-        </html>
-  
+    </html>
+        
