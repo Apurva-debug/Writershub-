@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Your matches — WritersClub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,37 +15,52 @@
     <span class="brand">WritersClub<small id="welcomeLine"></small></span>
   </header>
 
-  <div class="hero" id="myBookHero">
+  <div class="hero hero-panel" id="myBookHero">
     <h1 id="myBookTitle">Your book</h1>
     <p id="myBookMeta"></p>
   </div>
 
-  <div class="section-label">Books matched to your reading interests</div>
-  <div id="matchList"></div>
+  <div class="section-label left">Books matched to your reading interests</div>
+  <div id="matchList"><p>Loading matches…</p></div>
 
-  <div class="section-label">Your active support tasks</div>
+  <div class="section-label left">Your active support tasks</div>
   <div id="taskList"></div>
   <p id="noTasks" style="display:none;">No tasks yet — start one from a match above.</p>
 
-  <footer class="note">Prototype note: matches and tasks are stored on this phone only for now.</footer>
+  <button class="btn btn-ghost" id="logoutBtn">Log out</button>
+  <footer class="note">Matches and tasks update live, on any device you're signed in on.</footer>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script src="app.js"></script>
 <script>
-const user = WC.getCurrentUser();
-if (!user || !user.bookTitle){
-  window.location.href = 'signup.html';
+let user = null;
+let unsubscribeMatches = null;
+
+WC.onAuthReady((profile) => {
+  if (!profile) { window.location.href = 'login.html'; return; }
+  if (!profile.bookTitle) { window.location.href = 'signup.html'; return; }
+  user = profile;
+  init();
+});
+
+async function init(){
+  document.getElementById('welcomeLine').textContent = `Welcome back, ${user.name}`;
+  document.getElementById('myBookTitle').textContent = user.bookTitle;
+  document.getElementById('myBookMeta').textContent =
+    `${(user.writingGenres || []).join(', ')} · matching mode: ${user.matchMode === 'mutual' ? 'Mutual pairing' : 'Open matching'}`;
+
+  await renderMatches();
+  unsubscribeMatches = WC.listenToMatches(user.id, renderTasks);
 }
 
-document.getElementById('welcomeLine').textContent = `Welcome back, ${user.name}`;
-document.getElementById('myBookTitle').textContent = user.bookTitle;
-document.getElementById('myBookMeta').textContent =
-  `${user.writingGenre} · matching mode: ${user.matchMode === 'mutual' ? 'Mutual pairing' : 'Open matching'}`;
-
-function renderMatches(){
+async function renderMatches(){
   const list = document.getElementById('matchList');
+  const matches = await WC.findMatches(user);
   list.innerHTML = '';
-  const matches = WC.findMatches(user);
   if (matches.length === 0){
     list.innerHTML = '<p>No matches yet for your reading interests — check back as more writers join.</p>';
     return;
@@ -53,31 +68,33 @@ function renderMatches(){
   matches.forEach(m => {
     const card = document.createElement('div');
     card.className = 'card';
+    const tags = (m.writingGenres || []).map(g => `<span class="genre-tag">${g}</span>`).join('');
     card.innerHTML = `
       <div class="book-title">${m.bookTitle}</div>
       <div class="book-meta">by ${m.name}</div>
-      <span class="genre-tag">${m.writingGenre}</span>
+      <div>${tags}</div>
       <div style="margin-top:12px;">
         <button class="btn btn-secondary" data-id="${m.id}">Start support task (7-day deadline)</button>
       </div>
     `;
-    card.querySelector('button').addEventListener('click', () => {
-      WC.startTask(user, m, 7);
-      renderTasks();
-      card.querySelector('button').disabled = true;
-      card.querySelector('button').textContent = 'Task started';
+    card.querySelector('button').addEventListener('click', async (e) => {
+      e.target.disabled = true;
+      e.target.textContent = 'Starting…';
+      await WC.startTask(user, m, 7);
+      e.target.textContent = 'Task started';
     });
     list.appendChild(card);
   });
 }
 
-function renderTasks(){
+function renderTasks(mine){
   const list = document.getElementById('taskList');
   const empty = document.getElementById('noTasks');
   list.innerHTML = '';
-  const mine = WC.getMatches().filter(m => m.userId === user.id);
   empty.style.display = mine.length === 0 ? 'block' : 'none';
   mine.forEach(m => {
+    const mySide = WC.mySide(m, user.id);
+    const theirSide = WC.theirSide(m, user.id);
     const status = WC.matchStatus(m);
     const badgeClass = status === 'confirmed' ? 'status-confirmed' : (status === 'mismatch' ? 'status-mismatch' : 'status-pending');
     const badgeText = status === 'confirmed' ? 'Both confirmed' : (status === 'mismatch' ? 'Deadline passed, unresolved' : 'In progress');
@@ -85,28 +102,32 @@ function renderTasks(){
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <div class="book-title">${m.partnerBook}</div>
-      <div class="book-meta">with ${m.partnerName} · due ${deadline}</div>
+      <div class="book-title">${theirSide.book}</div>
+      <div class="book-meta">with ${theirSide.name} · due ${deadline}</div>
       <div style="margin-top:8px;"><span class="status-badge ${badgeClass}">${badgeText}</span></div>
+      <div class="confirm-row">
+        <span class="side">You: <span class="${mySide.confirmed ? 'yes' : 'waiting'}">${mySide.confirmed ? 'Confirmed ✓' : 'Not yet'}</span></span>
+        <span class="side">${theirSide.name}: <span class="${theirSide.confirmed ? 'yes' : 'waiting'}">${theirSide.confirmed ? 'Confirmed ✓' : 'Waiting…'}</span></span>
+      </div>
       <div style="margin-top:12px;">
-        <button class="btn btn-secondary" ${m.userConfirmed ? 'disabled' : ''}>
-          ${m.userConfirmed ? 'You confirmed' : 'Mark my part done'}
+        <button class="btn btn-secondary" ${mySide.confirmed ? 'disabled' : ''}>
+          ${mySide.confirmed ? 'You confirmed' : 'Mark my part done'}
         </button>
       </div>
     `;
     const btn = card.querySelector('button');
-    if (!m.userConfirmed){
-      btn.addEventListener('click', () => {
-        WC.confirmMatch(m.id, 'user');
-        renderTasks();
-      });
+    if (!mySide.confirmed){
+      btn.addEventListener('click', () => WC.confirmMatch(m.id, user.id));
     }
     list.appendChild(card);
   });
 }
 
-renderMatches();
-renderTasks();
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  if (unsubscribeMatches) unsubscribeMatches();
+  await WC.logOut();
+  window.location.href = 'index.html';
+});
 </script>
 </body>
 </html>
