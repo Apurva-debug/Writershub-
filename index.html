@@ -87,7 +87,7 @@
   </div>
 
   <a class="btn btn-primary" href="signup.html">Join with your Wattpad account</a>
-  <button class="btn btn-ghost" id="returningBtn">I already have an account</button>
+  <a class="btn btn-ghost" href="login.html" style="display:block;">I already have an account</a>
 
   <div class="section-label">How it works</div>
   <div class="steps">
@@ -108,24 +108,14 @@
     </div>
   </div>
 
-  <footer class="note">This is an early, single-device prototype — accounts are stored on this phone only for now.</footer>
+  <footer class="note">Your account and matches sync in real time — sign in from any device.</footer>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script src="app.js"></script>
-<script>
-  if (window.WC) {
-    WC.ensureSeedUsers();
-    document.getElementById('returningBtn').addEventListener('click', () => {
-      const u = WC.getCurrentUser();
-      if (u && u.bookTitle) {
-        window.location.href = 'dashboard.html';
-      } else {
-        alert("No account found on this phone yet — let's get you signed up.");
-        window.location.href = 'signup.html';
-      }
-    });
-  }
-</script>
 </body>
-            </html>
+          </html>
   
