@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Join — WritersClub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,13 +17,17 @@
 
   <div class="step-track" id="stepTrack"></div>
 
-  <!-- Step 1: Wattpad verification -->
+  <!-- Step 1: Wattpad verification + account -->
   <section class="step" data-step="1">
     <h2>Verify your Wattpad</h2>
     <p>Use the same account you write on. You'll need at least one chapter already published.</p>
     <div class="field">
       <label for="wpEmail">Email you use to log in to Wattpad</label>
       <input type="email" id="wpEmail" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label for="wpPassword">Create a password</label>
+      <input type="password" id="wpPassword" placeholder="At least 6 characters">
     </div>
     <div class="field">
       <label for="wpProfile">Link to your Wattpad profile</label>
@@ -46,8 +50,12 @@
       <input type="text" id="bookTitle" placeholder="e.g. The Quiet Ledger">
     </div>
     <div class="field">
-      <label>What genre is it?</label>
+      <label>What genre(s) is it? Pick as many as fit.</label>
       <div class="chip-grid" id="writingGenreGrid"></div>
+      <div class="inline-add">
+        <input type="text" id="customWritingGenre" placeholder="Not listed? Type your own genre">
+        <button type="button" onclick="WCUI.addCustom('writingGenreGrid','writingGenre','customWritingGenre')">Add</button>
+      </div>
     </div>
     <div class="error-msg" id="err2"></div>
     <button class="btn btn-primary" onclick="WCUI.next(2)">Continue</button>
@@ -59,6 +67,10 @@
     <p>Pick every genre you'd genuinely enjoy — this decides whose books you get matched to, and what we recommend you.</p>
     <div class="field">
       <div class="chip-grid" id="readingGenreGrid"></div>
+      <div class="inline-add">
+        <input type="text" id="customReadingGenre" placeholder="Not listed? Type your own genre">
+        <button type="button" onclick="WCUI.addCustom('readingGenreGrid','readingGenres','customReadingGenre')">Add</button>
+      </div>
     </div>
     <div class="error-msg" id="err3"></div>
     <button class="btn btn-primary" onclick="WCUI.next(3)">Continue</button>
@@ -102,16 +114,26 @@
       </div>
     </div>
     <div class="error-msg" id="err5"></div>
-    <button class="btn btn-primary" onclick="WCUI.finish()">Join WritersClub</button>
+    <button class="btn btn-primary" id="finishBtn" onclick="WCUI.finish()">Join WritersClub</button>
   </section>
 
-  <footer class="note">This is an early prototype — your info is stored on this phone only for now.</footer>
+  <footer class="note">Your account syncs in real time — you can log in from any device.</footer>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script src="app.js"></script>
 <script>
+const FRIENDLY_ERRORS = {
+  'auth/email-already-in-use': 'An account with that email already exists — try logging in instead.',
+  'auth/invalid-email': "That email doesn't look right.",
+  'auth/weak-password': 'Password needs to be at least 6 characters.'
+};
+
 const WCUI = {
-  data: { readingGenres: [], writingGenre: null, matchMode: null },
+  data: { readingGenres: [], writingGenres: [], matchMode: null },
 
   renderDots(step){
     const track = document.getElementById('stepTrack');
@@ -130,26 +152,33 @@ const WCUI = {
     window.scrollTo(0,0);
   },
 
-  buildGenreGrid(elId, key){
+  addChip(elId, key, label, isCustom){
     const grid = document.getElementById(elId);
-    WC.GENRES.forEach(g => {
-      const chip = document.createElement('div');
-      chip.className = 'chip';
-      chip.textContent = g;
-      chip.onclick = () => {
-        if (key === 'writingGenre'){
-          document.querySelectorAll(`#${elId} .chip`).forEach(c => c.classList.remove('selected'));
-          chip.classList.add('selected');
-          this.data.writingGenre = g;
-        } else {
-          chip.classList.toggle('selected');
-          const idx = this.data.readingGenres.indexOf(g);
-          if (chip.classList.contains('selected') && idx === -1) this.data.readingGenres.push(g);
-          if (!chip.classList.contains('selected') && idx > -1) this.data.readingGenres.splice(idx,1);
-        }
-      };
-      grid.appendChild(chip);
-    });
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (isCustom ? ' custom-chip' : '');
+    chip.textContent = label;
+    chip.onclick = () => {
+      chip.classList.toggle('selected');
+      const list = this.data[key];
+      const idx = list.indexOf(label);
+      if (chip.classList.contains('selected') && idx === -1) list.push(label);
+      if (!chip.classList.contains('selected') && idx > -1) list.splice(idx,1);
+    };
+    grid.appendChild(chip);
+    return chip;
+  },
+
+  buildGenreGrid(elId, key){
+    WC.GENRES.forEach(g => this.addChip(elId, key, g, false));
+  },
+
+  addCustom(gridId, key, inputId){
+    const input = document.getElementById(inputId);
+    const val = input.value.trim();
+    if (!val) return;
+    const chip = this.addChip(gridId, key, val, true);
+    chip.click(); // auto-select it since they just typed it in
+    input.value = '';
   },
 
   err(n, msg){
@@ -162,17 +191,20 @@ const WCUI = {
     this.err(step, '');
     if (step === 1){
       const email = document.getElementById('wpEmail').value.trim();
+      const password = document.getElementById('wpPassword').value;
       const profile = document.getElementById('wpProfile').value.trim();
       const chapters = parseInt(document.getElementById('wpChapters').value || '0', 10);
-      if (!email || !profile){ this.err(1, 'Fill in your email and profile link.'); return; }
+      if (!email || !password || !profile){ this.err(1, 'Fill in your email, password, and profile link.'); return; }
+      if (password.length < 6){ this.err(1, 'Password needs to be at least 6 characters.'); return; }
       const result = WC.verifyWattpad(profile, chapters);
       if (result.status === 'rejected'){ this.err(1, result.reason); return; }
-      this.data.wpEmail = email; this.data.wpProfile = profile; this.data.wpChapters = chapters;
+      this.data.wpEmail = email; this.data.wpPassword = password;
+      this.data.wpProfile = profile; this.data.wpChapters = chapters;
     }
     if (step === 2){
       const title = document.getElementById('bookTitle').value.trim();
       if (!title){ this.err(2, 'Add your book title.'); return; }
-      if (!this.data.writingGenre){ this.err(2, 'Pick the genre your book fits.'); return; }
+      if (this.data.writingGenres.length === 0){ this.err(2, 'Pick at least one genre your book fits.'); return; }
       this.data.bookTitle = title;
     }
     if (step === 3){
@@ -192,18 +224,30 @@ const WCUI = {
     document.querySelectorAll('.choice').forEach(c => c.classList.toggle('selected', c.dataset.mode === mode));
   },
 
-  finish(){
+  async finish(){
     if (!this.data.matchMode){ this.err(5, 'Choose a matching style.'); return; }
-    WC.createOrUpdateProfile({
-      name: this.data.displayName,
-      bookTitle: this.data.bookTitle,
-      writingGenre: this.data.writingGenre,
-      readingGenres: this.data.readingGenres,
-      wattpadProfile: this.data.wpProfile,
-      timeOnWattpad: this.data.timeOnWattpad,
-      matchMode: this.data.matchMode
-    });
-    window.location.href = 'dashboard.html';
+    this.err(5, '');
+    const btn = document.getElementById('finishBtn');
+    btn.disabled = true;
+    btn.textContent = 'Creating your account…';
+    try {
+      await WC.signUpAndCreateProfile({
+        email: this.data.wpEmail,
+        password: this.data.wpPassword,
+        name: this.data.displayName,
+        bookTitle: this.data.bookTitle,
+        writingGenres: this.data.writingGenres,
+        readingGenres: this.data.readingGenres,
+        wattpadProfile: this.data.wpProfile,
+        timeOnWattpad: this.data.timeOnWattpad,
+        matchMode: this.data.matchMode
+      });
+      window.location.href = 'dashboard.html';
+    } catch (e) {
+      this.err(5, FRIENDLY_ERRORS[e.code] || 'Something went wrong creating your account — try again.');
+      btn.disabled = false;
+      btn.textContent = 'Join WritersClub';
+    }
   }
 };
 
@@ -212,4 +256,5 @@ WCUI.buildGenreGrid('readingGenreGrid', 'readingGenres');
 WCUI.showStep(1);
 </script>
 </body>
-</html>
+        </html>
+  
