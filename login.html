@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — WritersClub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="spine-mark"></span>
+    <span class="brand">WritersClub</span>
+  </header>
+
+  <h2>Welcome back</h2>
+  <p>Log in with the email and password you signed up with.</p>
+
+  <div class="field">
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="you@example.com">
+  </div>
+  <div class="field">
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="••••••••">
+  </div>
+  <div class="error-msg" id="loginErr"></div>
+  <button class="btn btn-primary" id="loginBtn">Log in</button>
+  <a class="btn btn-ghost" href="signup.html" style="display:block;">New here? Join instead</a>
+
+  <footer class="note">Trouble logging in? Double-check your email and password.</footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+<script>
+const err = (msg) => {
+  const el = document.getElementById('loginErr');
+  el.textContent = msg;
+  el.classList.toggle('show', !!msg);
+};
+
+const FRIENDLY_ERRORS = {
+  'auth/invalid-email': "That email doesn't look right.",
+  'auth/user-not-found': "We couldn't find an account with that email.",
+  'auth/wrong-password': 'Wrong password — try again.',
+  'auth/invalid-credential': 'Email or password is incorrect.',
+  'auth/too-many-requests': 'Too many attempts — wait a bit and try again.'
+};
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  err('');
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if (!email || !password) { err('Fill in both fields.'); return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.textContent = 'Logging in…';
+  try {
+    await WC.logIn(email, password);
+    window.location.href = 'dashboard.html';
+  } catch (e) {
+    err(FRIENDLY_ERRORS[e.code] || 'Something went wrong — try again.');
+    btn.disabled = false;
+    btn.textContent = 'Log in';
+  }
+});
+</script>
+</body>
+    </html>
+    
