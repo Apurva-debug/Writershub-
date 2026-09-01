@@ -1,13 +1,8 @@
-// Paste the config object from Firebase Console → Project settings →
-// "Your apps" → SDK setup and configuration. It's safe for this to be
-// public/client-side — Firestore security rules (see SETUP.md) are what
-// actually protect your data, not secrecy of these values.
-
 const firebaseConfig = {
-  apiKey: "AIzaSyA7wp5vgAQhYpj_uYFqMocW5J5L5IYZ65E",
-  authDomain: "writershub-565c8.firebaseapp.com",
-  projectId: "writershub-565c8",
-  storageBucket: "writershub-565c8.firebasestorage.app",
-  messagingSenderId: "146728446317",
-  appId: "1:146728446317:web:9e766271a78df1a0e69264"
-};
+    apiKey: "AIzaSy...",
+      authDomain: "writershub-xxxxx.firebaseapp.com",
+        projectId: "writershub-xxxxx",
+          storageBucket: "writershub-xxxxx.appspot.com",
+            messagingSenderId: "123456789",
+              appId: "1:123456789:web:abc123"
+              };
