@@ -244,7 +244,7 @@ const WCUI = {
       });
       window.location.href = 'dashboard.html';
     } catch (e) {
-      this.err(5, FRIENDLY_ERRORS[e.code] || 'Something went wrong creating your account — try again.');
+      this.err(5, 'DEBUG: ' + (e.code || 'no code') + ' — ' + (e.message || 'no message'));
       btn.disabled = false;
       btn.textContent = 'Join WritersClub';
     }
@@ -256,5 +256,5 @@ WCUI.buildGenreGrid('readingGenreGrid', 'readingGenres');
 WCUI.showStep(1);
 </script>
 </body>
-    </html>
-        
+        </html>
+      
