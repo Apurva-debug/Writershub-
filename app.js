@@ -136,3 +136,23 @@ WC.matchStatus = function (m) {
   if (Date.now() > m.deadline && !(m.a.confirmed && m.b.confirmed)) return 'mismatch';
   return 'pending';
 };
+// ---------- account management ----------
+
+WC.sendPasswordReset = function (email) {
+  return auth.sendPasswordResetEmail(email);
+};
+
+WC.changePassword = async function (currentPassword, newPassword) {
+  const user = auth.currentUser;
+  const cred = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+  await user.reauthenticateWithCredential(cred);
+  await user.updatePassword(newPassword);
+};
+
+WC.deleteAccount = async function (currentPassword) {
+  const user = auth.currentUser;
+  const cred = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+  await user.reauthenticateWithCredential(cred);
+  await db.collection('users').doc(user.uid).delete();
+  await user.delete();
+};
