@@ -182,6 +182,23 @@ input[type=text], input[type=email], input[type=url], input[type=number], select
 input:focus, select:focus, textarea:focus { border-color: var(--purple); }
 textarea { resize: vertical; min-height: 80px; }
 
+/* ---------- password show/hide ---------- */
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 56px; }
+.pw-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--purple-deep);
+  padding: 4px 6px;
+}
+
 .inline-add { display: flex; gap: 8px; margin-top: 10px; }
 .inline-add input { flex: 1; }
 .inline-add button {
@@ -343,4 +360,5 @@ textarea { resize: vertical; min-height: 80px; }
 
 @media (prefers-reduced-motion: reduce) {
   .floaty, .floaty-2 { animation: none; }
-}
+  }
+  
