@@ -26,7 +26,17 @@
     </div>
     <div class="field">
       <label for="wpPassword">Create a password</label>
-      <input type="password" id="wpPassword" placeholder="At least 6 characters">
+      <div class="pw-wrap">
+        <input type="password" id="wpPassword" placeholder="At least 6 characters">
+        <button type="button" class="pw-toggle" id="wpPasswordToggle">Show</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="wpPasswordConfirm">Confirm password</label>
+      <div class="pw-wrap">
+        <input type="password" id="wpPasswordConfirm" placeholder="Type it again">
+        <button type="button" class="pw-toggle" id="wpPasswordConfirmToggle">Show</button>
+      </div>
     </div>
     <div class="field">
       <label for="wpProfile">Link to your Wattpad profile</label>
@@ -40,22 +50,12 @@
     <button class="btn btn-primary" onclick="WCUI.next(1)">Continue</button>
   </section>
 
-  <!-- Step 2: writing genre + book title -->
+  <!-- Step 2: books + their genres (repeatable) -->
   <section class="step" data-step="2" style="display:none;">
-    <h2>Your book</h2>
-    <p>This is what readers will see when they're matched to support you.</p>
-    <div class="field">
-      <label for="bookTitle">Book title</label>
-      <input type="text" id="bookTitle" placeholder="e.g. The Quiet Ledger">
-    </div>
-    <div class="field">
-      <label>What genre(s) is it? Pick as many as fit.</label>
-      <div class="chip-grid" id="writingGenreGrid"></div>
-      <div class="inline-add">
-        <input type="text" id="customWritingGenre" placeholder="Not listed? Type your own genre">
-        <button type="button" onclick="WCUI.addCustom('writingGenreGrid','writingGenres','customWritingGenre')">Add</button>
-      </div>
-    </div>
+    <h2>Your books</h2>
+    <p>Add every book you've published on Wattpad — each one can have its own genre(s), so readers only get matched to the book that fits their taste.</p>
+    <div id="booksContainer"></div>
+    <button type="button" class="btn btn-ghost" id="addBookBtn">+ Add another book</button>
     <div class="error-msg" id="err2"></div>
     <button class="btn btn-primary" onclick="WCUI.next(2)">Continue</button>
   </section>
@@ -131,8 +131,10 @@ const FRIENDLY_ERRORS = {
   'auth/weak-password': 'Password needs to be at least 6 characters.'
 };
 
+let bookCounter = 0;
+
 const WCUI = {
-  data: { readingGenres: [], writingGenres: [], matchMode: null },
+  data: { readingGenres: [], books: [], matchMode: null },
 
   renderDots(step){
     const track = document.getElementById('stepTrack');
@@ -180,6 +182,75 @@ const WCUI = {
     input.value = '';
   },
 
+  // ---------- repeatable book blocks ----------
+
+  addBookGenreChip(grid, bookId, label, isCustom){
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (isCustom ? ' custom-chip' : '');
+    chip.textContent = label;
+    chip.onclick = () => {
+      chip.classList.toggle('selected');
+      const book = this.data.books.find(b => b.id === bookId);
+      const idx = book.genres.indexOf(label);
+      if (chip.classList.contains('selected') && idx === -1) book.genres.push(label);
+      if (!chip.classList.contains('selected') && idx > -1) book.genres.splice(idx,1);
+    };
+    grid.appendChild(chip);
+    return chip;
+  },
+
+  addBookBlock(){
+    const id = 'book_' + (bookCounter++);
+    this.data.books.push({ id, title: '', genres: [] });
+    const isFirst = this.data.books.length === 1;
+
+    const block = document.createElement('div');
+    block.className = 'card';
+    block.style.marginBottom = '14px';
+    block.dataset.bookId = id;
+    block.innerHTML = `
+      <div class="field">
+        <label>Book ${this.data.books.length} title</label>
+        <input type="text" class="bookTitleInput" placeholder="e.g. The Quiet Ledger">
+      </div>
+      <div class="field">
+        <label>What genre(s) is it? Pick as many as fit.</label>
+        <div class="chip-grid bookGenreGrid"></div>
+        <div class="inline-add">
+          <input type="text" class="customBookGenre" placeholder="Not listed? Type your own genre">
+          <button type="button" class="addCustomBookGenre">Add</button>
+        </div>
+      </div>
+      ${isFirst ? '' : '<button type="button" class="btn btn-ghost removeBookBtn" style="margin-bottom:0;">Remove this book</button>'}
+    `;
+    document.getElementById('booksContainer').appendChild(block);
+
+    const titleInput = block.querySelector('.bookTitleInput');
+    titleInput.addEventListener('input', () => {
+      this.data.books.find(b => b.id === id).title = titleInput.value.trim();
+    });
+
+    const grid = block.querySelector('.bookGenreGrid');
+    WC.GENRES.forEach(g => this.addBookGenreChip(grid, id, g, false));
+
+    block.querySelector('.addCustomBookGenre').addEventListener('click', () => {
+      const input = block.querySelector('.customBookGenre');
+      const val = input.value.trim();
+      if (!val) return;
+      const chip = this.addBookGenreChip(grid, id, val, true);
+      chip.click();
+      input.value = '';
+    });
+
+    const removeBtn = block.querySelector('.removeBookBtn');
+    if (removeBtn){
+      removeBtn.addEventListener('click', () => {
+        this.data.books = this.data.books.filter(b => b.id !== id);
+        block.remove();
+      });
+    }
+  },
+
   err(n, msg){
     const el = document.getElementById('err'+n);
     el.textContent = msg;
@@ -191,20 +262,23 @@ const WCUI = {
     if (step === 1){
       const email = document.getElementById('wpEmail').value.trim();
       const password = document.getElementById('wpPassword').value;
+      const passwordConfirm = document.getElementById('wpPasswordConfirm').value;
       const profile = document.getElementById('wpProfile').value.trim();
       const chapters = parseInt(document.getElementById('wpChapters').value || '0', 10);
-      if (!email || !password || !profile){ this.err(1, 'Fill in your email, password, and profile link.'); return; }
+      if (!email || !password || !passwordConfirm || !profile){ this.err(1, 'Fill in your email, password, and profile link.'); return; }
       if (password.length < 6){ this.err(1, 'Password needs to be at least 6 characters.'); return; }
+      if (password !== passwordConfirm){ this.err(1, "Passwords don't match."); return; }
       const result = WC.verifyWattpad(profile, chapters);
       if (result.status === 'rejected'){ this.err(1, result.reason); return; }
       this.data.wpEmail = email; this.data.wpPassword = password;
       this.data.wpProfile = profile; this.data.wpChapters = chapters;
     }
     if (step === 2){
-      const title = document.getElementById('bookTitle').value.trim();
-      if (!title){ this.err(2, 'Add your book title.'); return; }
-      if (this.data.writingGenres.length === 0){ this.err(2, 'Pick at least one genre your book fits.'); return; }
-      this.data.bookTitle = title;
+      if (this.data.books.length === 0){ this.err(2, 'Add at least one book.'); return; }
+      for (const b of this.data.books){
+        if (!b.title){ this.err(2, 'Give every book a title.'); return; }
+        if (b.genres.length === 0){ this.err(2, 'Pick at least one genre for each book.'); return; }
+      }
     }
     if (step === 3){
       if (this.data.readingGenres.length === 0){ this.err(3, 'Pick at least one genre.'); return; }
@@ -234,8 +308,7 @@ const WCUI = {
         email: this.data.wpEmail,
         password: this.data.wpPassword,
         name: this.data.displayName,
-        bookTitle: this.data.bookTitle,
-        writingGenres: this.data.writingGenres,
+        books: this.data.books,
         readingGenres: this.data.readingGenres,
         wattpadProfile: this.data.wpProfile,
         timeOnWattpad: this.data.timeOnWattpad,
@@ -243,17 +316,20 @@ const WCUI = {
       });
       window.location.href = 'dashboard.html';
     } catch (e) {
-      this.err(5, 'DEBUG: ' + (e.code || 'no code') + ' — ' + (e.message || 'no message'));
+      this.err(5, FRIENDLY_ERRORS[e.code] || ('Something went wrong — ' + (e.message || 'try again.')));
       btn.disabled = false;
       btn.textContent = 'Join WritersClub';
     }
   }
 };
 
-WCUI.buildGenreGrid('writingGenreGrid', 'writingGenres');
+WCUI.addBookBlock();
+document.getElementById('addBookBtn').addEventListener('click', () => WCUI.addBookBlock());
 WCUI.buildGenreGrid('readingGenreGrid', 'readingGenres');
 WCUI.showStep(1);
+WC.wirePasswordToggle('wpPasswordToggle', 'wpPassword');
+WC.wirePasswordToggle('wpPasswordConfirmToggle', 'wpPasswordConfirm');
 </script>
 </body>
         </html>
-      
+    
