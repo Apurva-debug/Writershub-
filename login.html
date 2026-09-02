@@ -26,7 +26,10 @@
     </div>
     <div class="field">
       <label for="password">Password</label>
-      <input type="password" id="password" placeholder="••••••••">
+      <div class="pw-wrap">
+        <input type="password" id="password" placeholder="••••••••">
+        <button type="button" class="pw-toggle" id="passwordToggle">Show</button>
+      </div>
     </div>
     <div class="error-msg" id="loginErr"></div>
     <button class="btn btn-primary" id="loginBtn">Log in</button>
@@ -133,7 +136,8 @@ document.getElementById('resetBtn').addEventListener('click', async () => {
   btn.disabled = false;
   btn.textContent = 'Send reset email';
 });
+
+WC.wirePasswordToggle('passwordToggle', 'password');
 </script>
 </body>
-                       </html>
-                       
+</html>
