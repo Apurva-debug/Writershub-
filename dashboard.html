@@ -16,7 +16,7 @@
   </header>
 
   <div class="hero hero-panel" id="myBookHero">
-    <h1 id="myBookTitle">Your book</h1>
+    <h1 id="myBookTitle">Your books</h1>
     <p id="myBookMeta"></p>
   </div>
 
@@ -29,23 +29,52 @@
 
   <button class="btn btn-ghost" id="logoutBtn">Log out</button>
 
+  <!-- ===== Books & reading preferences ===== -->
+  <div class="section-label left" style="margin-top:36px;">Your books & preferences</div>
+  <div class="card" style="margin-bottom:24px;">
+    <div id="editBooksContainer"></div>
+    <button type="button" class="btn btn-ghost" id="addEditBookBtn">+ Add another book</button>
+
+    <div class="field" style="margin-top:18px;">
+      <label>What you love reading</label>
+      <div class="chip-grid" id="editReadingGenreGrid"></div>
+      <div class="inline-add">
+        <input type="text" id="editCustomReadingGenre" placeholder="Not listed? Type your own genre">
+        <button type="button" id="editAddCustomReadingGenre">Add</button>
+      </div>
+    </div>
+
+    <div class="error-msg" id="editPrefsErr"></div>
+    <div class="error-msg" id="editPrefsMsg" style="color:#3a9b6d;"></div>
+    <button class="btn btn-primary" id="savePrefsBtn" style="margin-top:8px; margin-bottom:0;">Save changes</button>
+  </div>
+
   <!-- ===== Account settings ===== -->
-  <div class="section-label left" style="margin-top:36px;">Account settings</div>
+  <div class="section-label left">Account settings</div>
 
   <div class="card" style="margin-bottom:12px;">
     <button class="btn btn-ghost" id="showChangePwBtn" type="button" style="margin-bottom:0;">Change password</button>
     <div id="changePwForm" style="display:none; margin-top:14px;">
       <div class="field">
         <label for="currentPw">Current password</label>
-        <input type="password" id="currentPw" placeholder="••••••••">
+        <div class="pw-wrap">
+          <input type="password" id="currentPw" placeholder="••••••••">
+          <button type="button" class="pw-toggle" id="currentPwToggle">Show</button>
+        </div>
       </div>
       <div class="field">
         <label for="newPw">New password</label>
-        <input type="password" id="newPw" placeholder="At least 6 characters">
+        <div class="pw-wrap">
+          <input type="password" id="newPw" placeholder="At least 6 characters">
+          <button type="button" class="pw-toggle" id="newPwToggle">Show</button>
+        </div>
       </div>
       <div class="field">
         <label for="confirmPw">Confirm new password</label>
-        <input type="password" id="confirmPw" placeholder="Type it again">
+        <div class="pw-wrap">
+          <input type="password" id="confirmPw" placeholder="Type it again">
+          <button type="button" class="pw-toggle" id="confirmPwToggle">Show</button>
+        </div>
       </div>
       <div class="error-msg" id="changePwErr"></div>
       <div class="error-msg" id="changePwMsg" style="color:#3a9b6d;"></div>
@@ -60,7 +89,10 @@
       <p style="color:#c0455a; font-size:13.5px; line-height:1.5;">This permanently deletes your account and profile. This can't be undone.</p>
       <div class="field">
         <label for="deletePw">Confirm your password</label>
-        <input type="password" id="deletePw" placeholder="••••••••">
+        <div class="pw-wrap">
+          <input type="password" id="deletePw" placeholder="••••••••">
+          <button type="button" class="pw-toggle" id="deletePwToggle">Show</button>
+        </div>
       </div>
       <div class="error-msg" id="deleteErr"></div>
       <button class="btn btn-primary" id="deleteBtn" style="background:#c0455a;">Yes, permanently delete my account</button>
@@ -82,17 +114,19 @@ let unsubscribeMatches = null;
 
 WC.onAuthReady((profile) => {
   if (!profile) { window.location.href = 'login.html'; return; }
-  if (!profile.bookTitle) { window.location.href = 'signup.html'; return; }
+  if (!profile.books || !profile.books.length) { window.location.href = 'signup.html'; return; }
   user = profile;
   init();
 });
 
 async function init(){
   document.getElementById('welcomeLine').textContent = `Welcome back, ${user.name}`;
-  document.getElementById('myBookTitle').textContent = user.bookTitle;
+  document.getElementById('myBookTitle').textContent = (user.books.length > 1) ? 'Your books' : 'Your book';
+  const bookSummary = user.books.map(b => `${b.title} (${(b.genres||[]).join(', ')})`).join(' · ');
   document.getElementById('myBookMeta').textContent =
-    `${(user.writingGenres || []).join(', ')} · matching mode: ${user.matchMode === 'mutual' ? 'Mutual pairing' : 'Open matching'}`;
+    `${bookSummary} · matching mode: ${user.matchMode === 'mutual' ? 'Mutual pairing' : 'Open matching'}`;
 
+  EditUI.init();
   await renderMatches();
   unsubscribeMatches = WC.listenToMatches(user.id, renderTasks);
 }
@@ -108,13 +142,13 @@ async function renderMatches(){
   matches.forEach(m => {
     const card = document.createElement('div');
     card.className = 'card';
-    const tags = (m.writingGenres || []).map(g => `<span class="genre-tag">${g}</span>`).join('');
+    const tags = (m.bookGenres || []).map(g => `<span class="genre-tag">${g}</span>`).join('');
     card.innerHTML = `
       <div class="book-title">${m.bookTitle}</div>
-      <div class="book-meta">by ${m.name}</div>
+      <div class="book-meta">by ${m.ownerName}</div>
       <div>${tags}</div>
       <div style="margin-top:12px;">
-        <button class="btn btn-secondary" data-id="${m.id}">Start support task (7-day deadline)</button>
+        <button class="btn btn-secondary" style="margin-bottom:0;">Start support task (7-day deadline)</button>
       </div>
     `;
     card.querySelector('button').addEventListener('click', async (e) => {
@@ -150,7 +184,7 @@ function renderTasks(mine){
         <span class="side">${theirSide.name}: <span class="${theirSide.confirmed ? 'yes' : 'waiting'}">${theirSide.confirmed ? 'Confirmed ✓' : 'Waiting…'}</span></span>
       </div>
       <div style="margin-top:12px;">
-        <button class="btn btn-secondary" ${mySide.confirmed ? 'disabled' : ''}>
+        <button class="btn btn-secondary" style="margin-bottom:0;" ${mySide.confirmed ? 'disabled' : ''}>
           ${mySide.confirmed ? 'You confirmed' : 'Mark my part done'}
         </button>
       </div>
@@ -168,6 +202,156 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   await WC.logOut();
   window.location.href = 'index.html';
 });
+
+// ---------- Edit books & reading preferences ----------
+
+let editBookCounter = 0;
+
+const EditUI = {
+  books: [],
+  readingGenres: [],
+
+  init(){
+    // deep-copy so edits don't touch `user` until saved
+    this.books = (user.books || []).map(b => ({ id: b.id, title: b.title, genres: [...(b.genres || [])] }));
+    this.readingGenres = [...(user.readingGenres || [])];
+
+    document.getElementById('editBooksContainer').innerHTML = '';
+    this.books.forEach(b => this.renderBookBlock(b));
+
+    document.getElementById('editReadingGenreGrid').innerHTML = '';
+    WC.GENRES.forEach(g => this.addReadingChip(g, this.readingGenres.includes(g), false));
+    this.readingGenres.filter(g => !WC.GENRES.includes(g)).forEach(g => this.addReadingChip(g, true, true));
+
+    document.getElementById('addEditBookBtn').addEventListener('click', () => {
+      const book = { id: 'newbook_' + (editBookCounter++), title: '', genres: [] };
+      this.books.push(book);
+      this.renderBookBlock(book);
+    });
+
+    document.getElementById('editAddCustomReadingGenre').addEventListener('click', () => {
+      const input = document.getElementById('editCustomReadingGenre');
+      const val = input.value.trim();
+      if (!val) return;
+      const chip = this.addReadingChip(val, true, true);
+      chip.click();
+      input.value = '';
+    });
+
+    document.getElementById('savePrefsBtn').addEventListener('click', () => this.save());
+  },
+
+  addReadingChip(label, preSelected, isCustom){
+    const grid = document.getElementById('editReadingGenreGrid');
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (isCustom ? ' custom-chip' : '') + (preSelected ? ' selected' : '');
+    chip.textContent = label;
+    chip.onclick = () => {
+      chip.classList.toggle('selected');
+      const idx = this.readingGenres.indexOf(label);
+      if (chip.classList.contains('selected') && idx === -1) this.readingGenres.push(label);
+      if (!chip.classList.contains('selected') && idx > -1) this.readingGenres.splice(idx, 1);
+    };
+    grid.appendChild(chip);
+    return chip;
+  },
+
+  renderBookBlock(book){
+    const block = document.createElement('div');
+    block.className = 'card';
+    block.style.marginBottom = '14px';
+    block.dataset.bookId = book.id;
+    block.innerHTML = `
+      <div class="field">
+        <label>Book title</label>
+        <input type="text" class="bookTitleInput" value="${book.title.replace(/"/g, '&quot;')}" placeholder="e.g. The Quiet Ledger">
+      </div>
+      <div class="field">
+        <label>What genre(s) is it? Pick as many as fit.</label>
+        <div class="chip-grid bookGenreGrid"></div>
+        <div class="inline-add">
+          <input type="text" class="customBookGenre" placeholder="Not listed? Type your own genre">
+          <button type="button" class="addCustomBookGenre">Add</button>
+        </div>
+      </div>
+      <button type="button" class="btn btn-ghost removeBookBtn" style="margin-bottom:0;">Remove this book</button>
+    `;
+    document.getElementById('editBooksContainer').appendChild(block);
+
+    const titleInput = block.querySelector('.bookTitleInput');
+    titleInput.addEventListener('input', () => { book.title = titleInput.value.trim(); });
+
+    const grid = block.querySelector('.bookGenreGrid');
+    const addGenreChip = (label, isCustom) => {
+      const chip = document.createElement('div');
+      chip.className = 'chip' + (isCustom ? ' custom-chip' : '') + (book.genres.includes(label) ? ' selected' : '');
+      chip.textContent = label;
+      chip.onclick = () => {
+        chip.classList.toggle('selected');
+        const idx = book.genres.indexOf(label);
+        if (chip.classList.contains('selected') && idx === -1) book.genres.push(label);
+        if (!chip.classList.contains('selected') && idx > -1) book.genres.splice(idx, 1);
+      };
+      grid.appendChild(chip);
+      return chip;
+    };
+    WC.GENRES.forEach(g => addGenreChip(g, false));
+    book.genres.filter(g => !WC.GENRES.includes(g)).forEach(g => addGenreChip(g, true));
+
+    block.querySelector('.addCustomBookGenre').addEventListener('click', () => {
+      const input = block.querySelector('.customBookGenre');
+      const val = input.value.trim();
+      if (!val) return;
+      addGenreChip(val, true).click();
+      input.value = '';
+    });
+
+    block.querySelector('.removeBookBtn').addEventListener('click', () => {
+      this.books = this.books.filter(b => b.id !== book.id);
+      block.remove();
+    });
+  },
+
+  err(msg){
+    const el = document.getElementById('editPrefsErr');
+    el.textContent = msg;
+    el.classList.toggle('show', !!msg);
+  },
+  msg(msg){
+    document.getElementById('editPrefsMsg').textContent = msg;
+  },
+
+  async save(){
+    this.err(''); this.msg('');
+    if (this.books.length === 0){ this.err('Add at least one book.'); return; }
+    for (const b of this.books){
+      if (!b.title){ this.err('Give every book a title.'); return; }
+      if (b.genres.length === 0){ this.err('Pick at least one genre for each book.'); return; }
+    }
+    if (this.readingGenres.length === 0){ this.err('Pick at least one reading genre.'); return; }
+
+    const btn = document.getElementById('savePrefsBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      await WC.updateBooks(user.id, this.books);
+      await WC.updateReadingGenres(user.id, this.readingGenres);
+      user.books = this.books;
+      user.readingGenres = this.readingGenres;
+      user.allWritingGenres = WC.flattenGenres(this.books);
+      document.getElementById('myBookTitle').textContent = (user.books.length > 1) ? 'Your books' : 'Your book';
+      const bookSummary = user.books.map(b => `${b.title} (${(b.genres||[]).join(', ')})`).join(' · ');
+      document.getElementById('myBookMeta').textContent =
+        `${bookSummary} · matching mode: ${user.matchMode === 'mutual' ? 'Mutual pairing' : 'Open matching'}`;
+      this.msg('Saved.');
+      await renderMatches();
+    } catch (e) {
+      this.err('Something went wrong — ' + (e.message || 'try again.'));
+    }
+    btn.disabled = false;
+    btn.textContent = 'Save changes';
+  }
+};
 
 // ---------- Change password ----------
 
@@ -266,7 +450,12 @@ document.getElementById('deleteBtn').addEventListener('click', async () => {
     btn.textContent = 'Yes, permanently delete my account';
   }
 });
+
+WC.wirePasswordToggle('currentPwToggle', 'currentPw');
+WC.wirePasswordToggle('newPwToggle', 'newPw');
+WC.wirePasswordToggle('confirmPwToggle', 'confirmPw');
+WC.wirePasswordToggle('deletePwToggle', 'deletePw');
 </script>
 </body>
-  </html>
-  
+      </html>
+      
