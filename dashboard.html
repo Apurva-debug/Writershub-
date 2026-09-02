@@ -28,6 +28,46 @@
   <p id="noTasks" style="display:none;">No tasks yet — start one from a match above.</p>
 
   <button class="btn btn-ghost" id="logoutBtn">Log out</button>
+
+  <!-- ===== Account settings ===== -->
+  <div class="section-label left" style="margin-top:36px;">Account settings</div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <button class="btn btn-ghost" id="showChangePwBtn" type="button" style="margin-bottom:0;">Change password</button>
+    <div id="changePwForm" style="display:none; margin-top:14px;">
+      <div class="field">
+        <label for="currentPw">Current password</label>
+        <input type="password" id="currentPw" placeholder="••••••••">
+      </div>
+      <div class="field">
+        <label for="newPw">New password</label>
+        <input type="password" id="newPw" placeholder="At least 6 characters">
+      </div>
+      <div class="field">
+        <label for="confirmPw">Confirm new password</label>
+        <input type="password" id="confirmPw" placeholder="Type it again">
+      </div>
+      <div class="error-msg" id="changePwErr"></div>
+      <div class="error-msg" id="changePwMsg" style="color:#3a9b6d;"></div>
+      <button class="btn btn-primary" id="changePwBtn">Update password</button>
+      <button class="btn btn-ghost" id="cancelChangePwBtn" type="button">Cancel</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px;">
+    <button class="btn btn-ghost" id="showDeleteBtn" type="button" style="margin-bottom:0; color:#c0455a; border-color:#f0c9d0;">Delete account</button>
+    <div id="deleteForm" style="display:none; margin-top:14px;">
+      <p style="color:#c0455a; font-size:13.5px; line-height:1.5;">This permanently deletes your account and profile. This can't be undone.</p>
+      <div class="field">
+        <label for="deletePw">Confirm your password</label>
+        <input type="password" id="deletePw" placeholder="••••••••">
+      </div>
+      <div class="error-msg" id="deleteErr"></div>
+      <button class="btn btn-primary" id="deleteBtn" style="background:#c0455a;">Yes, permanently delete my account</button>
+      <button class="btn btn-ghost" id="cancelDeleteBtn" type="button">Cancel</button>
+    </div>
+  </div>
+
   <footer class="note">Matches and tasks update live, on any device you're signed in on.</footer>
 </div>
 
@@ -128,6 +168,105 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   await WC.logOut();
   window.location.href = 'index.html';
 });
+
+// ---------- Change password ----------
+
+const changePwErr = (msg) => {
+  const el = document.getElementById('changePwErr');
+  el.textContent = msg;
+  el.classList.toggle('show', !!msg);
+};
+const changePwMsg = (msg) => {
+  document.getElementById('changePwMsg').textContent = msg;
+};
+
+document.getElementById('showChangePwBtn').addEventListener('click', () => {
+  document.getElementById('changePwForm').style.display = 'block';
+  document.getElementById('showChangePwBtn').style.display = 'none';
+});
+document.getElementById('cancelChangePwBtn').addEventListener('click', () => {
+  document.getElementById('changePwForm').style.display = 'none';
+  document.getElementById('showChangePwBtn').style.display = 'block';
+  changePwErr(''); changePwMsg('');
+  document.getElementById('currentPw').value = '';
+  document.getElementById('newPw').value = '';
+  document.getElementById('confirmPw').value = '';
+});
+
+const CHANGE_PW_ERRORS = {
+  'auth/wrong-password': 'Your current password is incorrect.',
+  'auth/invalid-credential': 'Your current password is incorrect.',
+  'auth/weak-password': 'New password needs to be at least 6 characters.',
+  'auth/requires-recent-login': 'For security, please log out and log back in, then try again.'
+};
+
+document.getElementById('changePwBtn').addEventListener('click', async () => {
+  changePwErr(''); changePwMsg('');
+  const current = document.getElementById('currentPw').value;
+  const next = document.getElementById('newPw').value;
+  const confirm = document.getElementById('confirmPw').value;
+  if (!current || !next || !confirm) { changePwErr('Fill in all three fields.'); return; }
+  if (next.length < 6) { changePwErr('New password needs to be at least 6 characters.'); return; }
+  if (next !== confirm) { changePwErr('New passwords don\'t match.'); return; }
+  const btn = document.getElementById('changePwBtn');
+  btn.disabled = true;
+  btn.textContent = 'Updating…';
+  try {
+    await WC.changePassword(current, next);
+    changePwMsg('Password updated successfully.');
+    document.getElementById('currentPw').value = '';
+    document.getElementById('newPw').value = '';
+    document.getElementById('confirmPw').value = '';
+  } catch (e) {
+    changePwErr(CHANGE_PW_ERRORS[e.code] || 'Something went wrong — try again.');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Update password';
+});
+
+// ---------- Delete account ----------
+
+const deleteErr = (msg) => {
+  const el = document.getElementById('deleteErr');
+  el.textContent = msg;
+  el.classList.toggle('show', !!msg);
+};
+
+document.getElementById('showDeleteBtn').addEventListener('click', () => {
+  document.getElementById('deleteForm').style.display = 'block';
+  document.getElementById('showDeleteBtn').style.display = 'none';
+});
+document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+  document.getElementById('deleteForm').style.display = 'none';
+  document.getElementById('showDeleteBtn').style.display = 'block';
+  deleteErr('');
+  document.getElementById('deletePw').value = '';
+});
+
+const DELETE_ERRORS = {
+  'auth/wrong-password': 'Your password is incorrect.',
+  'auth/invalid-credential': 'Your password is incorrect.',
+  'auth/requires-recent-login': 'For security, please log out and log back in, then try again.'
+};
+
+document.getElementById('deleteBtn').addEventListener('click', async () => {
+  deleteErr('');
+  const password = document.getElementById('deletePw').value;
+  if (!password) { deleteErr('Enter your password to confirm.'); return; }
+  const btn = document.getElementById('deleteBtn');
+  btn.disabled = true;
+  btn.textContent = 'Deleting…';
+  try {
+    if (unsubscribeMatches) unsubscribeMatches();
+    await WC.deleteAccount(password);
+    window.location.href = 'index.html';
+  } catch (e) {
+    deleteErr(DELETE_ERRORS[e.code] || 'Something went wrong — try again.');
+    btn.disabled = false;
+    btn.textContent = 'Yes, permanently delete my account';
+  }
+});
 </script>
 </body>
-</html>
+  </html>
+  
