@@ -3,104 +3,169 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Your matches — WritersClub</title>
+<title>Dashboard — WritersClub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
+
+<!-- ===== top bar + drawer (all dashboard pages share this) ===== -->
+<header class="app-topbar">
+  <button class="menu-toggle" id="menuToggle" aria-label="Open menu"><span></span></button>
+  <span class="brand">WritersClub</span>
+</header>
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<nav class="drawer" id="drawer">
+  <div class="drawer-header">
     <span class="spine-mark"></span>
-    <span class="brand">WritersClub<small id="welcomeLine"></small></span>
-  </header>
-
-  <div class="hero hero-panel" id="myBookHero">
-    <h1 id="myBookTitle">Your books</h1>
-    <p id="myBookMeta"></p>
+    <span class="brand">WritersClub</span>
   </div>
+  <div class="drawer-nav">
+    <button class="drawer-link active" data-section="home"><span class="ic">⌂</span> Dashboard</button>
+    <button class="drawer-link" data-section="search"><span class="ic">⌕</span> Search</button>
+    <button class="drawer-link" data-section="matches"><span class="ic">✦</span> Matches</button>
+    <button class="drawer-link" data-section="tasks"><span class="ic">☑</span> My Tasks</button>
+    <button class="drawer-link" data-section="books"><span class="ic">▤</span> My Books</button>
+    <button class="drawer-link" data-section="preferences"><span class="ic">♡</span> Reading Preferences</button>
+    <button class="drawer-link" data-section="account"><span class="ic">⚙</span> Account Settings</button>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn btn-ghost" id="logoutBtn" style="margin-bottom:0;">Log out</button>
+  </div>
+</nav>
 
-  <div class="section-label left">Books matched to your reading interests</div>
-  <div id="matchList"><p>Loading matches…</p></div>
+<div class="wrap app-body">
 
-  <div class="section-label left">Your active support tasks</div>
-  <div id="taskList"></div>
-  <p id="noTasks" style="display:none;">No tasks yet — start one from a match above.</p>
+  <!-- ===== Home ===== -->
+  <section class="app-section active" id="section-home">
+    <div class="hero hero-panel" style="margin-bottom:20px;">
+      <h1 id="welcomeTitle">Welcome back</h1>
+      <p id="welcomeSub"></p>
+    </div>
 
-  <button class="btn btn-ghost" id="logoutBtn">Log out</button>
+    <div class="stat-row">
+      <div class="stat-box"><div class="num" id="statBooks">0</div><div class="label">Books</div></div>
+      <div class="stat-box"><div class="num" id="statMatches">0</div><div class="label">Matches</div></div>
+      <div class="stat-box"><div class="num" id="statTasks">0</div><div class="label">Active tasks</div></div>
+    </div>
 
-  <!-- ===== Books & reading preferences ===== -->
-  <div class="section-label left" style="margin-top:36px;">Your books & preferences</div>
-  <div class="card" style="margin-bottom:24px;">
+    <div class="section-label left" style="margin-top:28px;">Jump to</div>
+    <div class="shortcut-list">
+      <button class="shortcut" data-goto="search"><div><div class="title">Search books & writers</div><div class="sub">Look up anyone on WritersClub</div></div><span class="arrow">›</span></button>
+      <button class="shortcut" data-goto="matches"><div><div class="title">Your matches</div><div class="sub">Books picked for your reading taste</div></div><span class="arrow">›</span></button>
+      <button class="shortcut" data-goto="tasks"><div><div class="title">Your active tasks</div><div class="sub">Support you've started or received</div></div><span class="arrow">›</span></button>
+      <button class="shortcut" data-goto="books"><div><div class="title">Your books</div><div class="sub">Edit titles, genres & links</div></div><span class="arrow">›</span></button>
+    </div>
+  </section>
+
+  <!-- ===== Search ===== -->
+  <section class="app-section" id="section-search">
+    <h2>Search</h2>
+    <p>Look up any book or writer on WritersClub — even outside your usual genres.</p>
+    <div class="search-bar">
+      <span class="ic">⌕</span>
+      <input type="text" id="searchInput" placeholder="Search by book title or writer name">
+    </div>
+    <div id="searchResults"></div>
+  </section>
+
+  <!-- ===== Matches ===== -->
+  <section class="app-section" id="section-matches">
+    <h2>Your matches</h2>
+    <p>Books matched to your reading interests.</p>
+    <div id="matchList"><p>Loading matches…</p></div>
+  </section>
+
+  <!-- ===== Tasks ===== -->
+  <section class="app-section" id="section-tasks">
+    <h2>Your active support tasks</h2>
+    <div id="taskList"></div>
+    <p id="noTasks" style="display:none;">No tasks yet — start one from a match or search result.</p>
+  </section>
+
+  <!-- ===== Books ===== -->
+  <section class="app-section" id="section-books">
+    <h2>Your books</h2>
+    <p>Add every book you've published — each can have its own genres and its own direct Wattpad link.</p>
     <div id="editBooksContainer"></div>
     <button type="button" class="btn btn-ghost" id="addEditBookBtn">+ Add another book</button>
+    <div class="error-msg" id="editBooksErr"></div>
+    <div class="error-msg" id="editBooksMsg" style="color:#3a9b6d;"></div>
+    <button class="btn btn-primary" id="saveBooksBtn">Save books</button>
+  </section>
 
-    <div class="field" style="margin-top:18px;">
-      <label>What you love reading</label>
+  <!-- ===== Reading preferences ===== -->
+  <section class="app-section" id="section-preferences">
+    <h2>What you love reading</h2>
+    <p>This decides whose books you get matched to, and what search flags as a fit.</p>
+    <div class="field">
       <div class="chip-grid" id="editReadingGenreGrid"></div>
       <div class="inline-add">
         <input type="text" id="editCustomReadingGenre" placeholder="Not listed? Type your own genre">
         <button type="button" id="editAddCustomReadingGenre">Add</button>
       </div>
     </div>
-
     <div class="error-msg" id="editPrefsErr"></div>
     <div class="error-msg" id="editPrefsMsg" style="color:#3a9b6d;"></div>
-    <button class="btn btn-primary" id="savePrefsBtn" style="margin-top:8px; margin-bottom:0;">Save changes</button>
-  </div>
+    <button class="btn btn-primary" id="savePrefsBtn">Save preferences</button>
+  </section>
 
-  <!-- ===== Account settings ===== -->
-  <div class="section-label left">Account settings</div>
+  <!-- ===== Account ===== -->
+  <section class="app-section" id="section-account">
+    <h2>Account settings</h2>
 
-  <div class="card" style="margin-bottom:12px;">
-    <button class="btn btn-ghost" id="showChangePwBtn" type="button" style="margin-bottom:0;">Change password</button>
-    <div id="changePwForm" style="display:none; margin-top:14px;">
-      <div class="field">
-        <label for="currentPw">Current password</label>
-        <div class="pw-wrap">
-          <input type="password" id="currentPw" placeholder="••••••••">
-          <button type="button" class="pw-toggle" id="currentPwToggle">Show</button>
+    <div class="card" style="margin-bottom:12px;">
+      <button class="btn btn-ghost" id="showChangePwBtn" type="button" style="margin-bottom:0;">Change password</button>
+      <div id="changePwForm" style="display:none; margin-top:14px;">
+        <div class="field">
+          <label for="currentPw">Current password</label>
+          <div class="pw-wrap">
+            <input type="password" id="currentPw" placeholder="••••••••">
+            <button type="button" class="pw-toggle" id="currentPwToggle">Show</button>
+          </div>
         </div>
-      </div>
-      <div class="field">
-        <label for="newPw">New password</label>
-        <div class="pw-wrap">
-          <input type="password" id="newPw" placeholder="At least 6 characters">
-          <button type="button" class="pw-toggle" id="newPwToggle">Show</button>
+        <div class="field">
+          <label for="newPw">New password</label>
+          <div class="pw-wrap">
+            <input type="password" id="newPw" placeholder="At least 6 characters">
+            <button type="button" class="pw-toggle" id="newPwToggle">Show</button>
+          </div>
         </div>
-      </div>
-      <div class="field">
-        <label for="confirmPw">Confirm new password</label>
-        <div class="pw-wrap">
-          <input type="password" id="confirmPw" placeholder="Type it again">
-          <button type="button" class="pw-toggle" id="confirmPwToggle">Show</button>
+        <div class="field">
+          <label for="confirmPw">Confirm new password</label>
+          <div class="pw-wrap">
+            <input type="password" id="confirmPw" placeholder="Type it again">
+            <button type="button" class="pw-toggle" id="confirmPwToggle">Show</button>
+          </div>
         </div>
+        <div class="error-msg" id="changePwErr"></div>
+        <div class="error-msg" id="changePwMsg" style="color:#3a9b6d;"></div>
+        <button class="btn btn-primary" id="changePwBtn">Update password</button>
+        <button class="btn btn-ghost" id="cancelChangePwBtn" type="button">Cancel</button>
       </div>
-      <div class="error-msg" id="changePwErr"></div>
-      <div class="error-msg" id="changePwMsg" style="color:#3a9b6d;"></div>
-      <button class="btn btn-primary" id="changePwBtn">Update password</button>
-      <button class="btn btn-ghost" id="cancelChangePwBtn" type="button">Cancel</button>
     </div>
-  </div>
 
-  <div class="card" style="margin-bottom:24px;">
-    <button class="btn btn-ghost" id="showDeleteBtn" type="button" style="margin-bottom:0; color:#c0455a; border-color:#f0c9d0;">Delete account</button>
-    <div id="deleteForm" style="display:none; margin-top:14px;">
-      <p style="color:#c0455a; font-size:13.5px; line-height:1.5;">This permanently deletes your account and profile. This can't be undone.</p>
-      <div class="field">
-        <label for="deletePw">Confirm your password</label>
-        <div class="pw-wrap">
-          <input type="password" id="deletePw" placeholder="••••••••">
-          <button type="button" class="pw-toggle" id="deletePwToggle">Show</button>
+    <div class="card" style="margin-bottom:24px;">
+      <button class="btn btn-ghost" id="showDeleteBtn" type="button" style="margin-bottom:0; color:#c0455a; border-color:#f0c9d0;">Delete account</button>
+      <div id="deleteForm" style="display:none; margin-top:14px;">
+        <p style="color:#c0455a; font-size:13.5px; line-height:1.5;">This permanently deletes your account and profile. This can't be undone.</p>
+        <div class="field">
+          <label for="deletePw">Confirm your password</label>
+          <div class="pw-wrap">
+            <input type="password" id="deletePw" placeholder="••••••••">
+            <button type="button" class="pw-toggle" id="deletePwToggle">Show</button>
+          </div>
         </div>
+        <div class="error-msg" id="deleteErr"></div>
+        <button class="btn btn-primary" id="deleteBtn" style="background:#c0455a;">Yes, permanently delete my account</button>
+        <button class="btn btn-ghost" id="cancelDeleteBtn" type="button">Cancel</button>
       </div>
-      <div class="error-msg" id="deleteErr"></div>
-      <button class="btn btn-primary" id="deleteBtn" style="background:#c0455a;">Yes, permanently delete my account</button>
-      <button class="btn btn-ghost" id="cancelDeleteBtn" type="button">Cancel</button>
     </div>
-  </div>
+  </section>
 
-  <footer class="note">Matches and tasks update live, on any device you're signed in on.</footer>
+  <footer class="note">Matches, tasks and search update live, on any device you're signed in on.</footer>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
@@ -111,6 +176,7 @@
 <script>
 let user = null;
 let unsubscribeMatches = null;
+let latestMatches = [];
 
 WC.onAuthReady((profile) => {
   if (!profile) { window.location.href = 'login.html'; return; }
@@ -120,51 +186,131 @@ WC.onAuthReady((profile) => {
 });
 
 async function init(){
-  document.getElementById('welcomeLine').textContent = `Welcome back, ${user.name}`;
-  document.getElementById('myBookTitle').textContent = (user.books.length > 1) ? 'Your books' : 'Your book';
+  document.getElementById('welcomeTitle').textContent = `Welcome back, ${user.name}`;
   const bookSummary = user.books.map(b => `${b.title} (${(b.genres||[]).join(', ')})`).join(' · ');
-  document.getElementById('myBookMeta').textContent =
+  document.getElementById('welcomeSub').textContent =
     `${bookSummary} · matching mode: ${user.matchMode === 'mutual' ? 'Mutual pairing' : 'Open matching'}`;
+  document.getElementById('statBooks').textContent = user.books.length;
 
   EditUI.init();
   await renderMatches();
   unsubscribeMatches = WC.listenToMatches(user.id, renderTasks);
 }
 
+// ---------- Wattpad link helper ----------
+// Every match/task/search card that references someone else's book uses
+// this — book link first, profile link as the fallback, so there's always
+// a way to actually reach their Wattpad.
+function wattpadLinkHtml(bookLink, profileLink){
+  const url = bookLink || profileLink;
+  if (!url) return '';
+  const label = bookLink ? 'Read on Wattpad →' : "View writer's profile →";
+  return `<a class="wattpad-link" href="${url}" target="_blank" rel="noopener">${label}</a>`;
+}
+
+// ---------- drawer navigation ----------
+const Nav = {
+  sections: ['home', 'search', 'matches', 'tasks', 'books', 'preferences', 'account'],
+  show(name){
+    this.sections.forEach(s => {
+      document.getElementById('section-' + s).classList.toggle('active', s === name);
+    });
+    document.querySelectorAll('.drawer-link').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.section === name);
+    });
+    this.close();
+    window.scrollTo(0, 0);
+  },
+  open(){ document.getElementById('drawer').classList.add('open'); document.getElementById('drawerOverlay').classList.add('open'); },
+  close(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); }
+};
+document.getElementById('menuToggle').addEventListener('click', () => Nav.open());
+document.getElementById('drawerOverlay').addEventListener('click', () => Nav.close());
+document.querySelectorAll('.drawer-link').forEach(btn => {
+  btn.addEventListener('click', () => Nav.show(btn.dataset.section));
+});
+document.querySelectorAll('[data-goto]').forEach(btn => {
+  btn.addEventListener('click', () => Nav.show(btn.dataset.goto));
+});
+
+// ---------- Matches ----------
 async function renderMatches(){
   const list = document.getElementById('matchList');
   const matches = await WC.findMatches(user);
+  latestMatches = matches;
+  document.getElementById('statMatches').textContent = matches.length;
   list.innerHTML = '';
   if (matches.length === 0){
-    list.innerHTML = '<p>No matches yet for your reading interests — check back as more writers join.</p>';
+    list.innerHTML = '<p>No matches yet for your reading interests — check back as more writers join, or try Search.</p>';
     return;
   }
-  matches.forEach(m => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    const tags = (m.bookGenres || []).map(g => `<span class="genre-tag">${g}</span>`).join('');
-    card.innerHTML = `
-      <div class="book-title">${m.bookTitle}</div>
-      <div class="book-meta">by ${m.ownerName}</div>
-      <div>${tags}</div>
-      <div style="margin-top:12px;">
-        <button class="btn btn-secondary" style="margin-bottom:0;">Start support task (7-day deadline)</button>
-      </div>
-    `;
-    card.querySelector('button').addEventListener('click', async (e) => {
-      e.target.disabled = true;
-      e.target.textContent = 'Starting…';
-      await WC.startTask(user, m, 7);
-      e.target.textContent = 'Task started';
-    });
-    list.appendChild(card);
-  });
+  matches.forEach(m => list.appendChild(buildMatchCard(m)));
 }
 
+function buildMatchCard(m, opts){
+  opts = opts || {};
+  const card = document.createElement('div');
+  card.className = 'card';
+  const tags = (m.bookGenres || []).map(g => `<span class="genre-tag">${g}</span>`).join('');
+  const note = opts.showMismatchNote ? '<div class="match-note">Doesn\'t match your reading interests</div>' : '';
+  card.innerHTML = `
+    <div class="book-title">${m.bookTitle}</div>
+    <div class="book-meta">by ${m.ownerName}</div>
+    <div>${tags}</div>
+    ${note}
+    ${wattpadLinkHtml(m.bookLink, m.ownerProfile)}
+    <div style="margin-top:12px;">
+      <button class="btn btn-secondary" style="margin-bottom:0;">Start support task (7-day deadline)</button>
+    </div>
+  `;
+  card.querySelector('button').addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    e.target.textContent = 'Starting…';
+    await WC.startTask(user, m, 7);
+    e.target.textContent = 'Task started';
+  });
+  return card;
+}
+
+// ---------- Search ----------
+let searchTimer = null;
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  const q = e.target.value;
+  searchTimer = setTimeout(() => runSearch(q), 350);
+});
+
+async function runSearch(q){
+  const box = document.getElementById('searchResults');
+  if (!q.trim()){ box.innerHTML = ''; return; }
+  box.innerHTML = '<p>Searching…</p>';
+  const results = await WC.searchBooks(user, q);
+  box.innerHTML = '';
+  if (results.length === 0){
+    box.innerHTML = '<p>No books or writers found for that search.</p>';
+    return;
+  }
+  for (const r of results){
+    box.appendChild(buildMatchCard(r, { showMismatchNote: !r.matchesInterest }));
+    if (!r.matchesInterest){
+      const similar = await WC.recommendSimilar(user, r.bookGenres, [r.bookId]);
+      if (similar.length){
+        const rec = document.createElement('div');
+        rec.className = 'recommend-block';
+        rec.innerHTML = `<div class="label">Closer to your taste:</div>`;
+        similar.forEach(s => rec.appendChild(buildMatchCard(s)));
+        box.appendChild(rec);
+      }
+    }
+  }
+}
+
+// ---------- Tasks ----------
 function renderTasks(mine){
   const list = document.getElementById('taskList');
   const empty = document.getElementById('noTasks');
   list.innerHTML = '';
+  document.getElementById('statTasks').textContent = mine.length;
   empty.style.display = mine.length === 0 ? 'block' : 'none';
   mine.forEach(m => {
     const mySide = WC.mySide(m, user.id);
@@ -179,6 +325,7 @@ function renderTasks(mine){
       <div class="book-title">${theirSide.book}</div>
       <div class="book-meta">with ${theirSide.name} · due ${deadline}</div>
       <div style="margin-top:8px;"><span class="status-badge ${badgeClass}">${badgeText}</span></div>
+      ${wattpadLinkHtml(theirSide.bookLink, theirSide.profile)}
       <div class="confirm-row">
         <span class="side">You: <span class="${mySide.confirmed ? 'yes' : 'waiting'}">${mySide.confirmed ? 'Confirmed ✓' : 'Not yet'}</span></span>
         <span class="side">${theirSide.name}: <span class="${theirSide.confirmed ? 'yes' : 'waiting'}">${theirSide.confirmed ? 'Confirmed ✓' : 'Waiting…'}</span></span>
@@ -203,7 +350,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   window.location.href = 'index.html';
 });
 
-// ---------- Edit books & reading preferences ----------
+// ---------- Edit books ----------
 
 let editBookCounter = 0;
 
@@ -212,8 +359,7 @@ const EditUI = {
   readingGenres: [],
 
   init(){
-    // deep-copy so edits don't touch `user` until saved
-    this.books = (user.books || []).map(b => ({ id: b.id, title: b.title, genres: [...(b.genres || [])] }));
+    this.books = (user.books || []).map(b => ({ id: b.id, title: b.title, link: b.link || '', genres: [...(b.genres || [])] }));
     this.readingGenres = [...(user.readingGenres || [])];
 
     document.getElementById('editBooksContainer').innerHTML = '';
@@ -224,7 +370,7 @@ const EditUI = {
     this.readingGenres.filter(g => !WC.GENRES.includes(g)).forEach(g => this.addReadingChip(g, true, true));
 
     document.getElementById('addEditBookBtn').addEventListener('click', () => {
-      const book = { id: 'newbook_' + (editBookCounter++), title: '', genres: [] };
+      const book = { id: 'newbook_' + (editBookCounter++), title: '', link: '', genres: [] };
       this.books.push(book);
       this.renderBookBlock(book);
     });
@@ -238,7 +384,8 @@ const EditUI = {
       input.value = '';
     });
 
-    document.getElementById('savePrefsBtn').addEventListener('click', () => this.save());
+    document.getElementById('saveBooksBtn').addEventListener('click', () => this.saveBooks());
+    document.getElementById('savePrefsBtn').addEventListener('click', () => this.savePrefs());
   },
 
   addReadingChip(label, preSelected, isCustom){
@@ -267,6 +414,10 @@ const EditUI = {
         <input type="text" class="bookTitleInput" value="${book.title.replace(/"/g, '&quot;')}" placeholder="e.g. The Quiet Ledger">
       </div>
       <div class="field">
+        <label>Link to this book on Wattpad (optional)</label>
+        <input type="url" class="bookLinkInput" value="${(book.link || '').replace(/"/g, '&quot;')}" placeholder="https://www.wattpad.com/story/...">
+      </div>
+      <div class="field">
         <label>What genre(s) is it? Pick as many as fit.</label>
         <div class="chip-grid bookGenreGrid"></div>
         <div class="inline-add">
@@ -280,6 +431,9 @@ const EditUI = {
 
     const titleInput = block.querySelector('.bookTitleInput');
     titleInput.addEventListener('input', () => { book.title = titleInput.value.trim(); });
+
+    const linkInput = block.querySelector('.bookLinkInput');
+    linkInput.addEventListener('input', () => { book.link = linkInput.value.trim(); });
 
     const grid = block.querySelector('.bookGenreGrid');
     const addGenreChip = (label, isCustom) => {
@@ -312,57 +466,63 @@ const EditUI = {
     });
   },
 
-  err(msg){
-    const el = document.getElementById('editPrefsErr');
+  err(elId, msg){
+    const el = document.getElementById(elId);
     el.textContent = msg;
     el.classList.toggle('show', !!msg);
   },
-  msg(msg){
-    document.getElementById('editPrefsMsg').textContent = msg;
-  },
+  msg(elId, msg){ document.getElementById(elId).textContent = msg; },
 
-  async save(){
-    this.err(''); this.msg('');
-    if (this.books.length === 0){ this.err('Add at least one book.'); return; }
+  async saveBooks(){
+    this.err('editBooksErr', ''); this.msg('editBooksMsg', '');
+    if (this.books.length === 0){ this.err('editBooksErr', 'Add at least one book.'); return; }
     for (const b of this.books){
-      if (!b.title){ this.err('Give every book a title.'); return; }
-      if (b.genres.length === 0){ this.err('Pick at least one genre for each book.'); return; }
+      if (!b.title){ this.err('editBooksErr', 'Give every book a title.'); return; }
+      if (b.genres.length === 0){ this.err('editBooksErr', 'Pick at least one genre for each book.'); return; }
     }
-    if (this.readingGenres.length === 0){ this.err('Pick at least one reading genre.'); return; }
-
-    const btn = document.getElementById('savePrefsBtn');
+    const btn = document.getElementById('saveBooksBtn');
     btn.disabled = true;
     btn.textContent = 'Saving…';
     try {
       await WC.updateBooks(user.id, this.books);
-      await WC.updateReadingGenres(user.id, this.readingGenres);
       user.books = this.books;
-      user.readingGenres = this.readingGenres;
       user.allWritingGenres = WC.flattenGenres(this.books);
-      document.getElementById('myBookTitle').textContent = (user.books.length > 1) ? 'Your books' : 'Your book';
+      document.getElementById('statBooks').textContent = user.books.length;
       const bookSummary = user.books.map(b => `${b.title} (${(b.genres||[]).join(', ')})`).join(' · ');
-      document.getElementById('myBookMeta').textContent =
+      document.getElementById('welcomeSub').textContent =
         `${bookSummary} · matching mode: ${user.matchMode === 'mutual' ? 'Mutual pairing' : 'Open matching'}`;
-      this.msg('Saved.');
+      this.msg('editBooksMsg', 'Saved.');
       await renderMatches();
     } catch (e) {
-      this.err('Something went wrong — ' + (e.message || 'try again.'));
+      this.err('editBooksErr', 'Something went wrong — ' + (e.message || 'try again.'));
     }
     btn.disabled = false;
-    btn.textContent = 'Save changes';
+    btn.textContent = 'Save books';
+  },
+
+  async savePrefs(){
+    this.err('editPrefsErr', ''); this.msg('editPrefsMsg', '');
+    if (this.readingGenres.length === 0){ this.err('editPrefsErr', 'Pick at least one reading genre.'); return; }
+    const btn = document.getElementById('savePrefsBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      await WC.updateReadingGenres(user.id, this.readingGenres);
+      user.readingGenres = this.readingGenres;
+      this.msg('editPrefsMsg', 'Saved.');
+      await renderMatches();
+    } catch (e) {
+      this.err('editPrefsErr', 'Something went wrong — ' + (e.message || 'try again.'));
+    }
+    btn.disabled = false;
+    btn.textContent = 'Save preferences';
   }
 };
 
 // ---------- Change password ----------
 
-const changePwErr = (msg) => {
-  const el = document.getElementById('changePwErr');
-  el.textContent = msg;
-  el.classList.toggle('show', !!msg);
-};
-const changePwMsg = (msg) => {
-  document.getElementById('changePwMsg').textContent = msg;
-};
+const changePwErr = (msg) => { const el = document.getElementById('changePwErr'); el.textContent = msg; el.classList.toggle('show', !!msg); };
+const changePwMsg = (msg) => { document.getElementById('changePwMsg').textContent = msg; };
 
 document.getElementById('showChangePwBtn').addEventListener('click', () => {
   document.getElementById('changePwForm').style.display = 'block';
@@ -410,11 +570,7 @@ document.getElementById('changePwBtn').addEventListener('click', async () => {
 
 // ---------- Delete account ----------
 
-const deleteErr = (msg) => {
-  const el = document.getElementById('deleteErr');
-  el.textContent = msg;
-  el.classList.toggle('show', !!msg);
-};
+const deleteErr = (msg) => { const el = document.getElementById('deleteErr'); el.textContent = msg; el.classList.toggle('show', !!msg); };
 
 document.getElementById('showDeleteBtn').addEventListener('click', () => {
   document.getElementById('deleteForm').style.display = 'block';
@@ -457,5 +613,4 @@ WC.wirePasswordToggle('confirmPwToggle', 'confirmPw');
 WC.wirePasswordToggle('deletePwToggle', 'deletePw');
 </script>
 </body>
-      </html>
-      
+</html>
