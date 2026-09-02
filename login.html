@@ -15,20 +15,39 @@
     <span class="brand">WritersClub</span>
   </header>
 
-  <h2>Welcome back</h2>
-  <p>Log in with the email and password you signed up with.</p>
+  <!-- Log in form -->
+  <div id="loginView">
+    <h2>Welcome back</h2>
+    <p>Log in with the email and password you signed up with.</p>
 
-  <div class="field">
-    <label for="email">Email</label>
-    <input type="email" id="email" placeholder="you@example.com">
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="••••••••">
+    </div>
+    <div class="error-msg" id="loginErr"></div>
+    <button class="btn btn-primary" id="loginBtn">Log in</button>
+    <button class="btn btn-ghost" id="forgotBtn" type="button">Forgot password?</button>
+    <a class="btn btn-ghost" href="signup.html" style="display:block;">New here? Join instead</a>
   </div>
-  <div class="field">
-    <label for="password">Password</label>
-    <input type="password" id="password" placeholder="••••••••">
+
+  <!-- Forgot password form (hidden until tapped) -->
+  <div id="forgotView" style="display:none;">
+    <h2>Reset your password</h2>
+    <p>Enter the email you signed up with and we'll send you a reset link.</p>
+
+    <div class="field">
+      <label for="resetEmail">Email</label>
+      <input type="email" id="resetEmail" placeholder="you@example.com">
+    </div>
+    <div class="error-msg" id="resetErr"></div>
+    <div class="error-msg" id="resetMsg" style="color:#3a9b6d;"></div>
+    <button class="btn btn-primary" id="resetBtn">Send reset email</button>
+    <button class="btn btn-ghost" id="backToLoginBtn" type="button">Back to log in</button>
   </div>
-  <div class="error-msg" id="loginErr"></div>
-  <button class="btn btn-primary" id="loginBtn">Log in</button>
-  <a class="btn btn-ghost" href="signup.html" style="display:block;">New here? Join instead</a>
 
   <footer class="note">Trouble logging in? Double-check your email and password.</footer>
 </div>
@@ -70,7 +89,51 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     btn.textContent = 'Log in';
   }
 });
+
+// ---------- forgot password flow ----------
+
+const resetErr = (msg) => {
+  const el = document.getElementById('resetErr');
+  el.textContent = msg;
+  el.classList.toggle('show', !!msg);
+};
+const resetMsg = (msg) => {
+  document.getElementById('resetMsg').textContent = msg;
+};
+
+document.getElementById('forgotBtn').addEventListener('click', () => {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('forgotView').style.display = 'block';
+});
+
+document.getElementById('backToLoginBtn').addEventListener('click', () => {
+  document.getElementById('forgotView').style.display = 'none';
+  document.getElementById('loginView').style.display = 'block';
+});
+
+const RESET_FRIENDLY_ERRORS = {
+  'auth/invalid-email': "That email doesn't look right.",
+  'auth/user-not-found': "We couldn't find an account with that email.",
+  'auth/too-many-requests': 'Too many attempts — wait a bit and try again.'
+};
+
+document.getElementById('resetBtn').addEventListener('click', async () => {
+  resetErr(''); resetMsg('');
+  const email = document.getElementById('resetEmail').value.trim();
+  if (!email) { resetErr('Enter your email.'); return; }
+  const btn = document.getElementById('resetBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  try {
+    await WC.sendPasswordReset(email);
+    resetMsg("Check your inbox — we've sent a link to reset your password.");
+  } catch (e) {
+    resetErr(RESET_FRIENDLY_ERRORS[e.code] || 'Something went wrong — try again.');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Send reset email';
+});
 </script>
 </body>
-    </html>
-    
+                       </html>
+                       
