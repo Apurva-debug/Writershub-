@@ -103,6 +103,10 @@ WC.updateBooks = function (uid, books) {
 // I like to read. Each result is one book, so someone with 3 books might
 // contribute 0, 1, 2 or 3 entries depending on which of their books
 // actually fit my reading preferences.
+//
+// Every result carries bookLink + ownerProfile so the UI can send someone
+// straight to the actual Wattpad book (falling back to the writer's
+// profile if they never added a direct book link).
 WC.findMatches = async function (user) {
   if (!user.readingGenres || !user.readingGenres.length) return [];
   const snap = await db.collection('users')
@@ -120,25 +124,101 @@ WC.findMatches = async function (user) {
       results.push({
         ownerId: o.id,
         ownerName: o.name,
+        ownerProfile: o.wattpadProfile || '',
         bookId: book.id,
         bookTitle: book.title,
-        bookGenres: book.genres || []
+        bookGenres: book.genres || [],
+        bookLink: book.link || ''
       });
     });
   });
   return results;
 };
 
+// ---------- search ----------
+
+// Searches every other writer's books by title (case-insensitive substring
+// match). Results are never filtered out for not fitting the searcher's
+// reading interests — each result just carries `matchesInterest` so the UI
+// can show a "doesn't match your interests" note without hiding the book.
+//
+// NOTE: this pulls every user document client-side, which is fine at
+// WritersClub's current scale but won't hold up on a large user base —
+// a real search index (e.g. Algolia, or a Cloud Function-maintained
+// search collection) is the eventual fix, same spirit as the other
+// FIREBASE SWAP POINT notes above.
+WC.searchBooks = async function (user, queryText) {
+  const q = (queryText || '').trim().toLowerCase();
+  if (!q) return [];
+  const snap = await db.collection('users').get();
+  const results = [];
+  snap.forEach(doc => {
+    if (doc.id === user.id) return;
+    const o = Object.assign({ id: doc.id }, doc.data());
+    (o.books || []).forEach(book => {
+      const titleMatch = (book.title || '').toLowerCase().includes(q);
+      const authorMatch = (o.name || '').toLowerCase().includes(q);
+      if (!titleMatch && !authorMatch) return;
+      results.push({
+        ownerId: o.id,
+        ownerName: o.name,
+        ownerProfile: o.wattpadProfile || '',
+        bookId: book.id,
+        bookTitle: book.title,
+        bookGenres: book.genres || [],
+        bookLink: book.link || '',
+        matchesInterest: WC.overlaps(book.genres, user.readingGenres)
+      });
+    });
+  });
+  return results;
+};
+
+// Given a set of genres (e.g. from a search result the searcher didn't
+// love, or just their own reading interests), finds other books that fit —
+// used to recommend alternatives alongside search results.
+WC.recommendSimilar = async function (user, genres, excludeBookIds) {
+  if (!genres || !genres.length) return [];
+  const exclude = excludeBookIds || [];
+  const snap = await db.collection('users')
+    .where('allWritingGenres', 'array-contains-any', genres.slice(0, 10))
+    .get();
+  const results = [];
+  snap.forEach(doc => {
+    if (doc.id === user.id) return;
+    const o = Object.assign({ id: doc.id }, doc.data());
+    (o.books || []).forEach(book => {
+      if (exclude.includes(book.id)) return;
+      if (!WC.overlaps(book.genres, genres)) return;
+      results.push({
+        ownerId: o.id,
+        ownerName: o.name,
+        ownerProfile: o.wattpadProfile || '',
+        bookId: book.id,
+        bookTitle: book.title,
+        bookGenres: book.genres || [],
+        bookLink: book.link || ''
+      });
+    });
+  });
+  return results.slice(0, 6);
+};
+
 // ---------- tasks / confirmation ----------
 
-// `match` is one entry from WC.findMatches (a specific book of theirs).
+// `match` is one entry from WC.findMatches or WC.searchBooks (a specific
+// book of theirs). Carries bookLink/profile along so the task card can
+// still link straight to Wattpad later.
 WC.startTask = async function (user, match, days) {
   const deadline = Date.now() + days * 86400000;
   const myFirstBook = (user.books && user.books[0]) || null;
   const matchDoc = {
     participantIds: [user.id, match.ownerId],
     a: { uid: user.id, name: user.name || 'You', book: myFirstBook ? myFirstBook.title : '', confirmed: false },
-    b: { uid: match.ownerId, name: match.ownerName, book: match.bookTitle, bookId: match.bookId, confirmed: false },
+    b: {
+      uid: match.ownerId, name: match.ownerName, book: match.bookTitle, bookId: match.bookId,
+      bookLink: match.bookLink || '', profile: match.ownerProfile || '', confirmed: false
+    },
     mode: user.matchMode,
     deadline,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -211,4 +291,5 @@ WC.wirePasswordToggle = function (toggleId, inputId) {
     btn.textContent = showing ? 'Show' : 'Hide';
   });
 };
-    
+
+        
