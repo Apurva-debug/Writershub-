@@ -201,7 +201,7 @@ const WCUI = {
 
   addBookBlock(){
     const id = 'book_' + (bookCounter++);
-    this.data.books.push({ id, title: '', genres: [] });
+    this.data.books.push({ id, title: '', link: '', genres: [] });
     const isFirst = this.data.books.length === 1;
 
     const block = document.createElement('div');
@@ -212,6 +212,11 @@ const WCUI = {
       <div class="field">
         <label>Book ${this.data.books.length} title</label>
         <input type="text" class="bookTitleInput" placeholder="e.g. The Quiet Ledger">
+      </div>
+      <div class="field">
+        <label>Link to this book on Wattpad (optional)</label>
+        <input type="url" class="bookLinkInput" placeholder="https://www.wattpad.com/story/...">
+        <p style="font-size:12px; text-align:left; margin-top:5px;">If you skip this, readers we match you with will be sent to your profile instead.</p>
       </div>
       <div class="field">
         <label>What genre(s) is it? Pick as many as fit.</label>
@@ -228,6 +233,11 @@ const WCUI = {
     const titleInput = block.querySelector('.bookTitleInput');
     titleInput.addEventListener('input', () => {
       this.data.books.find(b => b.id === id).title = titleInput.value.trim();
+    });
+
+    const linkInput = block.querySelector('.bookLinkInput');
+    linkInput.addEventListener('input', () => {
+      this.data.books.find(b => b.id === id).link = linkInput.value.trim();
     });
 
     const grid = block.querySelector('.bookGenreGrid');
@@ -332,4 +342,5 @@ WC.wirePasswordToggle('wpPasswordConfirmToggle', 'wpPasswordConfirm');
 </script>
 </body>
         </html>
-    
+
+  
