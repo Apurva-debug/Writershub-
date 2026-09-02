@@ -361,4 +361,170 @@ textarea { resize: vertical; min-height: 80px; }
 @media (prefers-reduced-motion: reduce) {
   .floaty, .floaty-2 { animation: none; }
   }
-  
+
+/* ================== drawer navigation (dashboard) ================== */
+
+/* dashboard pages get a fixed top bar instead of the plain .top header,
+   so content needs top padding to clear it */
+.app-topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 18px;
+  background: rgba(249, 246, 255, 0.92);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--line);
+  z-index: 20;
+}
+.menu-toggle {
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  background: var(--card-bg);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.menu-toggle span, .menu-toggle span::before, .menu-toggle span::after {
+  content: ''; display: block;
+  width: 16px; height: 2px;
+  background: var(--text-dark);
+  border-radius: 2px;
+  position: relative;
+}
+.menu-toggle span::before { position: absolute; top: -5px; }
+.menu-toggle span::after { position: absolute; top: 5px; }
+
+.app-body { padding-top: 76px; }
+
+.drawer-overlay {
+  position: fixed; inset: 0;
+  background: rgba(46, 42, 61, 0.35);
+  z-index: 29;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+.drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+.drawer {
+  position: fixed;
+  top: 0; bottom: 0; left: 0;
+  width: 82%;
+  max-width: 300px;
+  background: var(--card-bg);
+  z-index: 30;
+  transform: translateX(-100%);
+  transition: transform 0.22s ease;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 16px;
+  box-shadow: 12px 0 30px -12px rgba(46, 42, 61, 0.25);
+}
+.drawer.open { transform: translateX(0); }
+
+.drawer-header { display: flex; align-items: center; gap: 10px; margin-bottom: 26px; padding: 0 8px; }
+
+.drawer-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 13px 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-dark);
+  cursor: pointer;
+}
+.drawer-link .ic { width: 20px; text-align: center; opacity: 0.75; }
+.drawer-link:hover { background: var(--purple-pale); }
+.drawer-link.active { background: var(--purple-pale); color: var(--purple-deep); }
+
+.drawer-footer { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 8px; }
+
+/* ================== app sections ================== */
+.app-section { display: none; }
+.app-section.active { display: block; }
+
+.stat-row { display: flex; gap: 10px; margin-bottom: 8px; }
+.stat-box {
+  flex: 1;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 14px 12px;
+  text-align: center;
+  box-shadow: 0 6px 16px -10px var(--shadow-soft);
+}
+.stat-box .num { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 22px; color: var(--purple-deep); }
+.stat-box .label { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+.shortcut-list { display: flex; flex-direction: column; gap: 10px; }
+.shortcut {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 15px 16px;
+  box-shadow: 0 6px 16px -10px var(--shadow-soft);
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+}
+.shortcut .title { font-weight: 600; font-size: 14.5px; color: var(--text-dark); }
+.shortcut .sub { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+.shortcut .arrow { color: var(--purple-deep); font-size: 18px; }
+
+/* ---------- search ---------- */
+.search-bar { position: relative; margin-bottom: 18px; }
+.search-bar input {
+  padding-left: 42px;
+}
+.search-bar .ic {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); pointer-events: none;
+}
+
+.match-note {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--amber-text);
+  background: var(--amber-bg);
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-top: 9px;
+}
+
+.recommend-block { margin-top: 8px; }
+.recommend-block .label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+/* ---------- external Wattpad links on match/task/search cards ---------- */
+.wattpad-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--purple-deep);
+  text-decoration: none;
+  margin-top: 10px;
+}
+.wattpad-link:hover { text-decoration: underline; }
+
